@@ -103,6 +103,11 @@ X2, Y2 = np.meshgrid(unique_X, unique_Y)
 # Interpolation des valeurs de Z sur la grille X2, Y2
 Z2 = griddata((X, Y), Z, (X2, Y2), method='linear')
 
+#Enregistrement des coordonnées matricelles objet
+savetxt('X2.txt', X2, fmt='%-7.6f')   
+savetxt('Y2.txt', Y2, fmt='%-7.6f')
+savetxt('Z2.txt', Z2, fmt='%-7.6f')  
+
 # Affichage du résultat avec colorbar
 plt.figure()
 plt.pcolor(X2, Y2, Z2, cmap='gray', vmin=-10, vmax=np.nanmax(Z2))
