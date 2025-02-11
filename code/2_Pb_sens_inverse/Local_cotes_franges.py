@@ -122,14 +122,17 @@ io.imsave(A,B)
 plt.figure()
 plt.imshow(PosiGauche, cmap = plt.get_cmap('gray'))
 plt.title('Position Gauche')
+plt.show()
 
 plt.figure()
 plt.imshow(PosiDroite, cmap = plt.get_cmap('gray'))
 plt.title('Position Droite')
+plt.show()
 
 plt.figure()
 plt.imshow(Posiglobal, cmap = plt.get_cmap('gray'))
 plt.title('Position Globale')
+plt.show()
 
 #Affichage de l'image enregistrée des positions globales des franges
 plt.figure()
@@ -137,6 +140,7 @@ plt.imshow(B[:,:,1], cmap = plt.get_cmap('gray'))
 plt.title('Image des cotés des franges')
 plt.xlabel('vRzoom pixels')
 plt.ylabel('uRzomm pixels')
+plt.show()
 
 print(time.process_time() - start_time, "seconds")  # fin mesure temps d'éxecusion
 # %%
