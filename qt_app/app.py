@@ -1,42 +1,141 @@
 import sys
-from PySide6.QtWidgets  import QApplication, QMainWindow
-from PySide6.QtCore import QTimer
-from PySide6.QtGui import QPixmap
+from PySide6 import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
 
-from V0 import Ui_Imageur3D  # Import the generated class
+from test import Ui_Imageur3D 
+import traceback, sys
+
 
 import builtins
 import io
-import sys
+import os
+import threading
+import time
+sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_direct')
+from Objet import create_and_display_object
 
 
 class PrintWrapper(io.StringIO):
   def __call__(self, *args, **kwargs):
-    # Pass the object instance (self) as the file
     return builtins.print(*args, file=self, **kwargs)
 
-print = PrintWrapper() # print is now the printer AND a buffer
-print('this was added to buffer')  # triggers print.__call__()
-print('this was also added to the buffer')
+print = PrintWrapper()
 print.getvalue()
+
+class WorkerSignals(QObject):
+    '''
+    Defines the signals available from a running worker thread.
+
+    Supported signals are:
+
+    finished
+        No data
+
+    error
+        tuple (exctype, value, traceback.format_exc() )
+
+    result
+        object data returned from processing, anything
+
+    progress
+        int indicating % progress
+
+    '''
+    finished = Signal()
+    error = Signal(tuple)
+    result = Signal(object)
+    progress = Signal(int)
+
+class Worker(QRunnable):
+
+
+    def __init__(self, fn, *args, **kwargs):
+        super().__init__()
+
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+        self.kwargs['progress_callback'] = self.signals.progress
+
+    def run(self):
+        try:
+            result = self.fn(*self.args, **self.kwargs)
+        except:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)  # Return the result of the processing
+        finally:
+            self.signals.finished.emit()  # Done
+
+
+
 
 class MyApp(QMainWindow, Ui_Imageur3D):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_console)  # Call function every interval
+        self.timer.timeout.connect(self.update_console)  
         self.timer.start(1000) 
-        self.label_2.setPixmap(QPixmap("I3.bmp"))
-        self.label_2.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        self.pushButton_3.clicked.connect(self.on_pushButton_clicked)
+        self.threadpool = QThreadPool()
+        self.numberoftabs = 0
+        self.imagetabs = {}
+        self.imagelabels = {}
+        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+
+    def progress_fn(self, n):
+        self.progressBar_2.setValue(n)
+        print("%d%% done" % n)
+
+    def print_output(self, s):
+        print(s)
+
+    def thread_complete(self):
+        self.add_image_to_tab(self.tabWidget_2,"Objet1.png")
+        print("THREAD COMPLETE!")
+
+    def add_image_to_tab(self,tab,image_path):
+        self.numberoftabs += 1
+        self.imagetabs[self.numberoftabs] = QWidget()
+        self.imagetabs[self.numberoftabs].setObjectName(u"tab_4")
+
+        tab.addTab(self.imagetabs[self.numberoftabs], "")
+        self.tabWidget_2.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", image_path, None))
+
+        self.imagelabels[self.numberoftabs] = QLabel(self.imagetabs[self.numberoftabs])
+        self.imagelabels[self.numberoftabs].setObjectName(image_path)
+        self.imagelabels[self.numberoftabs].setGeometry(QRect(0, 0, 621, 321))
+        self.imagelabels[self.numberoftabs].setPixmap(QPixmap(image_path))
+        self.imagelabels[self.numberoftabs].setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        tab.setCurrentIndex(self.numberoftabs)
+    def on_pushButton_clicked(self):
+        # Pass the function to execute
+        worker = Worker(create_and_display_object,printfn = PrintWrapper) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.thread_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
 
     def update_console(self):
-        print("help")
+        oldvertical = self.textBrowser.verticalScrollBar().value()
         self.textBrowser.setText(print.getvalue())
-        self.textBrowser.verticalScrollBar().setValue(self.textBrowser.verticalScrollBar().maximum())
+        if(self.radioButton.isChecked()):
+            self.textBrowser.verticalScrollBar().setValue(self.textBrowser.verticalScrollBar().maximum())
+        else:
+            self.textBrowser.verticalScrollBar().setValue(oldvertical)
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    if not QApplication.instance():
+        app = QApplication(sys.argv)
+    else:
+        app = QApplication.instance()
     window = MyApp()
     window.show()
  
