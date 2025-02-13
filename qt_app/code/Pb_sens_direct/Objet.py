@@ -8,8 +8,7 @@ import time
 from numpy import meshgrid, sqrt, linspace, savetxt
 # On importe le module matplotlib qui permet de générer des graphiques 2D et 3D
 import matplotlib.pyplot as plt
-def create_and_display_object(progress_callback,printfn):
-    print = printfn
+def create_and_display_object(progress_callback):
     progress_callback.emit(0)
     print("Début de la simulation de l'objet")  
     start_time = time.process_time()  # début mesure temps d'éxecusion
