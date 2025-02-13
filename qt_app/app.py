@@ -13,8 +13,13 @@ import io
 import os
 import threading
 import time
+from numpy import loadtxt
 sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_direct')
 from Objet import create_and_display_object
+from franges_objet import faire_franges_objets
+from franges_recepteur import faire_franges_recepteur
+
+from Trames_binaires import faire_franges
 
 
 class PrintWrapper(io.StringIO):
@@ -25,24 +30,6 @@ print = PrintWrapper()
 print.getvalue()
 
 class WorkerSignals(QObject):
-    '''
-    Defines the signals available from a running worker thread.
-
-    Supported signals are:
-
-    finished
-        No data
-
-    error
-        tuple (exctype, value, traceback.format_exc() )
-
-    result
-        object data returned from processing, anything
-
-    progress
-        int indicating % progress
-
-    '''
     finished = Signal()
     error = Signal(tuple)
     result = Signal(object)
@@ -82,7 +69,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_console)  
         self.timer.start(1000) 
-        self.pushButton_3.clicked.connect(self.on_pushButton_clicked)
+        self.pushButton_3.clicked.connect(self.genrere_franges_recepteur)
         self.threadpool = QThreadPool()
         self.numberoftabs = 0
         self.imagetabs = {}
@@ -116,12 +103,61 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         tab.setCurrentIndex(self.numberoftabs)
     def on_pushButton_clicked(self):
         # Pass the function to execute
-        worker = Worker(create_and_display_object,printfn = PrintWrapper) # Any other args, kwargs are passed to the run function
+        worker = Worker(create_and_display_object) # Any other args, kwargs are passed to the run function
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.thread_complete)
         worker.signals.progress.connect(self.progress_fn)
         # Execute
         self.threadpool.start(worker)
+    
+    def genrere_franges_objet(self):
+        # Pass the function to execute
+        worker = Worker(faire_franges_objets) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.frange_objet_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+    
+    def frange_objet_complete(self):
+        N = loadtxt("N.txt")
+        N = int(N)
+        for k in range(N):
+            self.add_image_to_tab(self.tabWidget_2,'I' + str(k + 1) + '.bmp')
+        print("THREAD COMPLETE!")
+
+    def genrere_franges(self):
+        # Pass the function to execute
+        worker = Worker(faire_franges) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.frange_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+    
+    def frange_complete(self):
+        N = loadtxt("N.txt")
+        N = int(N)
+        for k in range(N):
+            self.add_image_to_tab(self.tabWidget_2,'Trame' + str(k+1) + '.bmp')
+        print("THREAD COMPLETE!")
+    
+    def genrere_franges_recepteur(self):
+        # Pass the function to execute
+        worker = Worker(faire_franges_recepteur) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.frange_recepteur_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+    
+    def frange_recepteur_complete(self):
+        N = loadtxt("N.txt")
+        N = int(N)
+        for k in range(N):
+            self.add_image_to_tab(self.tabWidget_2,'IRZoom' + str(k+1) + '.bmp'   )
+        print("THREAD COMPLETE!")
+
 
     def update_console(self):
         oldvertical = self.textBrowser.verticalScrollBar().value()
