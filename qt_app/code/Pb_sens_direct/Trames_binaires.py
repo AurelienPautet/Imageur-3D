@@ -49,7 +49,11 @@ def faire_franges(progress_callback):
         b = 0 * IE
 
         B = np.dstack((r, g, b))
+        noise = np.random.normal(0, 50, B.shape)
+        B = B + noise
+        B = np.clip(B, 0, 255)
         B = uint8(B)
+
         # enregistrement
         A = 'Trame' + str(k+1) + '.bmp'
         io.imsave(A, B)
@@ -61,3 +65,11 @@ def faire_franges(progress_callback):
     progress_callback.emit(100)
 
     print(time.process_time() - start_time, "seconds")  # fin mesure temps d'éxecusion
+
+class callback():
+   def emit(self, value):
+      print(value)
+
+
+if __name__ == '__main__':
+    faire_franges(callback())
