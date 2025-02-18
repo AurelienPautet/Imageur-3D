@@ -42,21 +42,11 @@
      <attribute name="title">
       <string>Simulation</string>
      </attribute>
-     <widget class="QTextBrowser" name="consoleLayout">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>470</y>
-        <width>1001</width>
-        <height>161</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>435</y>
+        <x>10</x>
+        <y>480</y>
         <width>111</width>
         <height>31</height>
        </rect>
@@ -72,7 +62,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>370</y>
+        <y>410</y>
         <width>141</width>
         <height>51</height>
        </rect>
@@ -85,7 +75,7 @@
       <property name="geometry">
        <rect>
         <x>560</x>
-        <y>440</y>
+        <y>480</y>
         <width>301</width>
         <height>23</height>
        </rect>
@@ -98,7 +88,7 @@
       <property name="geometry">
        <rect>
         <x>420</x>
-        <y>430</y>
+        <y>470</y>
         <width>191</width>
         <height>41</height>
        </rect>
@@ -114,7 +104,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>10</y>
+        <y>30</y>
         <width>621</width>
         <height>351</height>
        </rect>
@@ -127,7 +117,7 @@
         <string notr="true">background-color : rgb(197,197,197);</string>
        </property>
        <attribute name="title">
-        <string>Resultat of the simulation</string>
+        <string>Resultat de la simulation</string>
        </attribute>
        <widget class="QLabel" name="affichage">
         <property name="geometry">
@@ -147,11 +137,11 @@
        </widget>
       </widget>
      </widget>
-     <widget class="QRadioButton" name="autoScrollButton">
+     <widget class="QCheckBox" name="autoScrollButton">
       <property name="geometry">
        <rect>
         <x>150</x>
-        <y>440</y>
+        <y>480</y>
         <width>151</width>
         <height>31</height>
        </rect>
@@ -167,7 +157,7 @@
       <property name="geometry">
        <rect>
         <x>700</x>
-        <y>40</y>
+        <y>60</y>
         <width>291</width>
         <height>321</height>
        </rect>
@@ -177,7 +167,7 @@
       <property name="geometry">
        <rect>
         <x>710</x>
-        <y>10</y>
+        <y>30</y>
         <width>271</width>
         <height>20</height>
        </rect>
@@ -190,9 +180,9 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>390</y>
+        <y>430</y>
         <width>201</width>
-        <height>32</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -203,7 +193,7 @@
       <property name="geometry">
        <rect>
         <x>370</x>
-        <y>370</y>
+        <y>410</y>
         <width>141</width>
         <height>51</height>
        </rect>
@@ -213,11 +203,11 @@
  coordonnées 3D</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton">
+     <widget class="QCheckBox" name="checkBox">
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>370</y>
+        <y>410</y>
         <width>51</width>
         <height>20</height>
        </rect>
@@ -226,11 +216,11 @@
        <string>Bruit</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_2">
+     <widget class="QCheckBox" name="checkBox_2">
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>370</y>
+        <y>410</y>
         <width>121</width>
         <height>20</height>
        </rect>
@@ -243,7 +233,7 @@
       <property name="geometry">
        <rect>
         <x>520</x>
-        <y>370</y>
+        <y>410</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -257,63 +247,269 @@
      <attribute name="title">
       <string>Scan</string>
      </attribute>
-     <widget class="QProgressBar" name="progressBar">
+     <widget class="QCheckBox" name="checkBox_5">
       <property name="geometry">
        <rect>
-        <x>800</x>
-        <y>200</y>
-        <width>118</width>
+        <x>600</x>
+        <y>410</y>
+        <width>121</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Halo de lumière</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="frangesButton_3">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>430</y>
+        <width>201</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Générer les franges</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="autoScrollButton_3">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>490</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>AUTO SCROLL</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_7">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>480</y>
+        <width>191</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 22pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Progress :</string>
+      </property>
+     </widget>
+     <widget class="QProgressBar" name="progressBar_4">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>490</y>
+        <width>301</width>
         <height>23</height>
        </rect>
       </property>
       <property name="value">
-       <number>24</number>
+       <number>0</number>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QTextBrowser" name="consoleLayout_2">
       <property name="geometry">
        <rect>
-        <x>760</x>
-        <y>50</y>
-        <width>111</width>
-        <height>23</height>
+        <x>10</x>
+        <y>530</y>
+        <width>1051</width>
+        <height>131</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="TroisDButton_3">
+      <property name="geometry">
+       <rect>
+        <x>730</x>
+        <y>410</y>
+        <width>141</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>PushButton</string>
+       <string>Retrouver les 
+ coordonnées 3D</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QLabel" name="label_8">
       <property name="geometry">
        <rect>
-        <x>890</x>
-        <y>60</y>
-        <width>111</width>
-        <height>23</height>
+        <x>710</x>
+        <y>40</y>
+        <width>271</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>PushButton</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Informations&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_6">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>410</y>
+        <width>51</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Bruit</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="simulateObjectButton_3">
+      <property name="geometry">
+       <rect>
+        <x>390</x>
+        <y>410</y>
+        <width>141</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Simuler un objet</string>
+      </property>
+     </widget>
+     <widget class="QTabWidget" name="resultTabWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>40</y>
+        <width>621</width>
+        <height>351</height>
+       </rect>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="result_3">
+       <property name="styleSheet">
+        <string notr="true">background-color : rgb(197,197,197);</string>
+       </property>
+       <attribute name="title">
+        <string>Resultat du scan</string>
+       </attribute>
+       <widget class="QLabel" name="affichage_3">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>621</width>
+          <height>321</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(197,197,197);</string>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Ici s'affichera le résultat des différentes étapes du scan&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="autoButton_3">
+      <property name="geometry">
+       <rect>
+        <x>870</x>
+        <y>410</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Auto</string>
+      </property>
+     </widget>
+     <widget class="QListView" name="informationList_3">
+      <property name="geometry">
+       <rect>
+        <x>700</x>
+        <y>70</y>
+        <width>291</width>
+        <height>321</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>490</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 22pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Console :</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>410</y>
+        <width>16</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color : rgb(197,197,197);</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="calibEmetteurButton">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>410</y>
+        <width>113</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Calibrer 
+ l'émetteur</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="calibReceptButton">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>410</y>
+        <width>113</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Calibrer le 
+ récepteur</string>
       </property>
      </widget>
     </widget>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1080</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuhome">
-    <property name="title">
-     <string>home</string>
+   <widget class="QTextBrowser" name="consoleLayout">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>560</y>
+      <width>1051</width>
+      <height>131</height>
+     </rect>
     </property>
    </widget>
-   <addaction name="menuhome"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

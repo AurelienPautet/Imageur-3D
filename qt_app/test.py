@@ -92,6 +92,8 @@ class Ui_Imageur3D(object):
         self.statusbar.setObjectName(u"statusbar")
         Imageur3D.setStatusBar(self.statusbar)
 
+        self.
+
         self.menubar.addAction(self.menuhome.menuAction())
 
         self.retranslateUi(Imageur3D)
