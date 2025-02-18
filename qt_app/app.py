@@ -13,15 +13,25 @@ import io
 import os
 import threading
 import time
-# sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_direct')
-sys.path.insert(0, '/Users/thomas/Desktop/pronto/qt_app/code/Pb_sens_direct')
+
+import numpy as np
+
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.backends.backend_qtagg import \
+    NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.qt_compat import QtWidgets
+from matplotlib.figure import Figure
+
+sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_direct')
+#sys.path.insert(0, '/Users/thomas/Desktop/pronto/qt_app/code/Pb_sens_direct')
 from numpy import loadtxt
 from Objet import create_and_display_object
 from franges_objet import faire_franges_objets
 from franges_recepteur import faire_franges_recepteur
-
 from Trames_binaires import faire_franges
+sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_inverse')
 
+from Coord3D_objet import genere_coord3D
 
 class PrintWrapper(io.StringIO):
   def __call__(self, *args, **kwargs):
@@ -37,8 +47,6 @@ class WorkerSignals(QObject):
     progress = Signal(int)
 
 class Worker(QRunnable):
-
-
     def __init__(self, fn, *args, **kwargs):
         super().__init__()
 
@@ -56,9 +64,9 @@ class Worker(QRunnable):
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            self.signals.result.emit(result)  # Return the result of the processing
+            self.signals.result.emit(result) 
         finally:
-            self.signals.finished.emit()  # Done
+            self.signals.finished.emit()  
 
 
 
@@ -70,12 +78,15 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_console)  
         self.timer.start(1000) 
-        self.pushButton_3.clicked.connect(self.genrere_franges_recepteur)
+        self.simulateObjectButton.clicked.connect(self.generer_objet)
+        self.frangesButton.clicked.connect(self.genrere_franges)
+        self.TroisDButton.clicked.connect(self.genere_objet_3D)
         self.threadpool = QThreadPool()
         self.numberoftabs = 0
         self.imagetabs = {}
         self.imagelabels = {}
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+
 
     def progress_fn(self, n):
         self.progressBar_2.setValue(n)
@@ -85,7 +96,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         print(s)
 
     def thread_complete(self):
-        self.add_image_to_tab(self.tabWidget_2,"Objet1.png")
+        self.add_image_to_tab(self.resultTabWidget,"Objet1.png")
         print("THREAD COMPLETE!")
 
     def add_image_to_tab(self,tab,image_path):
@@ -94,7 +105,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.imagetabs[self.numberoftabs].setObjectName(u"tab_4")
 
         tab.addTab(self.imagetabs[self.numberoftabs], "")
-        self.tabWidget_2.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", image_path, None))
+        self.resultTabWidget.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", image_path, None))
 
         self.imagelabels[self.numberoftabs] = QLabel(self.imagetabs[self.numberoftabs])
         self.imagelabels[self.numberoftabs].setObjectName(image_path)
@@ -102,7 +113,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.imagelabels[self.numberoftabs].setPixmap(QPixmap(image_path))
         self.imagelabels[self.numberoftabs].setScaledContents(True)  # Ajuste l'image à la taille du QLabel
         tab.setCurrentIndex(self.numberoftabs)
-    def on_pushButton_clicked(self):
+    def generer_objet(self):
         # Pass the function to execute
         worker = Worker(create_and_display_object) # Any other args, kwargs are passed to the run function
         worker.signals.result.connect(self.print_output)
@@ -124,8 +135,9 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
-            self.add_image_to_tab(self.tabWidget_2,'I' + str(k + 1) + '.bmp')
+            self.add_image_to_tab(self.resultTabWidget,'I' + str(k + 1) + '.bmp')
         print("THREAD COMPLETE!")
+        self.genrere_franges_recepteur()
 
     def genrere_franges(self):
         # Pass the function to execute
@@ -140,8 +152,9 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
-            self.add_image_to_tab(self.tabWidget_2,'Trame' + str(k+1) + '.bmp')
+            self.add_image_to_tab(self.resultTabWidget,'Trame' + str(k+1) + '.bmp')
         print("THREAD COMPLETE!")
+        self.genrere_franges_objet()
     
     def genrere_franges_recepteur(self):
         # Pass the function to execute
@@ -156,17 +169,39 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
-            self.add_image_to_tab(self.tabWidget_2,'IRZoom' + str(k+1) + '.bmp'   )
+            self.add_image_to_tab(self.resultTabWidget,'IRZoom' + str(k+1) + '.bmp'   )
         print("THREAD COMPLETE!")
+
+    def genere_objet_3D(self):
+        worker = Worker(genere_coord3D) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.genere_objet_3D_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+    
+    def genere_objet_3D_complete(self):
+        self.add_image_to_tab(self.resultTabWidget,"Nuances.png")
+        self.fig = Figure(figsize=(5, 3))
+        static_canvas = FigureCanvas(self.fig)
+        self.axes = self.fig.add_subplot(111, projection='3d')
+        self.numberoftabs += 1
+        self.resultTabWidget.addTab(static_canvas, "")
+        self.resultTabWidget.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", "3D OBJECT PLOT", None))
+
+        X = loadtxt('X_scan.txt')
+        Y = loadtxt('Y_scan.txt')
+        Z = loadtxt('Z_scan.txt')
+        self.axes.scatter(X, Y, Z,s=0.5)
 
 
     def update_console(self):
-        oldvertical = self.textBrowser.verticalScrollBar().value()
-        self.textBrowser.setText(print.getvalue())
-        if(self.radioButton.isChecked()):
-            self.textBrowser.verticalScrollBar().setValue(self.textBrowser.verticalScrollBar().maximum())
+        oldvertical = self.consoleLayout.verticalScrollBar().value()
+        self.consoleLayout.setText(print.getvalue())
+        if(self.autoScrollButton.isChecked()):
+            self.consoleLayout.verticalScrollBar().setValue(self.consoleLayout.verticalScrollBar().maximum())
         else:
-            self.textBrowser.verticalScrollBar().setValue(oldvertical)
+            self.consoleLayout.verticalScrollBar().setValue(oldvertical)
 
 if __name__ == "__main__":
     if not QApplication.instance():
