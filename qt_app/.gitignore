@@ -1,0 +1,6 @@
+# Ignore node_modules directory
+**myenv/**
+env/
+.env
+venv/
+.venv

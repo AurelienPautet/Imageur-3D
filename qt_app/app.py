@@ -123,12 +123,10 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
     
     def genrere_franges_objet(self):
-        # Pass the function to execute
-        worker = Worker(faire_franges_objets) # Any other args, kwargs are passed to the run function
+        worker = Worker(faire_franges_objets) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_objet_complete)
         worker.signals.progress.connect(self.progress_fn)
-        # Execute
         self.threadpool.start(worker)
     
     def frange_objet_complete(self):
@@ -140,12 +138,10 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.genrere_franges_recepteur()
 
     def genrere_franges(self):
-        # Pass the function to execute
-        worker = Worker(faire_franges) # Any other args, kwargs are passed to the run function
+        worker = Worker(faire_franges) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_complete)
         worker.signals.progress.connect(self.progress_fn)
-        # Execute
         self.threadpool.start(worker)
     
     def frange_complete(self):
@@ -157,12 +153,10 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.genrere_franges_objet()
     
     def genrere_franges_recepteur(self):
-        # Pass the function to execute
-        worker = Worker(faire_franges_recepteur) # Any other args, kwargs are passed to the run function
+        worker = Worker(faire_franges_recepteur) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_recepteur_complete)
         worker.signals.progress.connect(self.progress_fn)
-        # Execute
         self.threadpool.start(worker)
     
     def frange_recepteur_complete(self):
@@ -173,7 +167,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         print("THREAD COMPLETE!")
 
     def genere_objet_3D(self):
-        worker = Worker(genere_coord3D) # Any other args, kwargs are passed to the run function
+        worker = Worker(genere_coord3D) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.genere_objet_3D_complete)
         worker.signals.progress.connect(self.progress_fn)
