@@ -76,7 +76,7 @@ Y = []
 Z = []
 
 for i in range(len(PosiGlobal)):
-   z_def = -10  # on fixe la valeur de z
+   z_def = 0  # on fixe la valeur de z
    for e in range(len(PosiGlobal[0])):
       if PosiGlobal[i,e] !=0:
          ur = i
@@ -110,7 +110,7 @@ savetxt('Z2.txt', Z2, fmt='%-7.6f')
 
 # Affichage du résultat avec colorbar
 plt.figure()
-plt.pcolor(X2, Y2, Z2, cmap='gray', vmin=-10, vmax=np.nanmax(Z2))
+plt.pcolor(X2, Y2, Z2, cmap='gray', vmin=Z2.min(), vmax=np.nanmax(Z2))
 plt.title('Z (mm) - Objet bouclier simulé')
 plt.axis([X2.min(), X2.max(), Y2.min(), Y2.max()])
 plt.colorbar()
