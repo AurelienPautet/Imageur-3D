@@ -12,7 +12,7 @@ from numpy import linspace, zeros, savetxt, sin, pi, uint8
 import matplotlib.pyplot as plt
 from skimage import io    
 
-def faire_franges(progress_callback):
+def faire_franges(progress_callback,bruit,halo):
     start_time = time.process_time()  # début mesure temps d'éxecusion
     progress_callback.emit(0)
     # Définition du nombre de trames
@@ -49,9 +49,20 @@ def faire_franges(progress_callback):
         b = 0 * IE
 
         B = np.dstack((r, g, b))
-        noise = np.random.normal(0, 50, B.shape)
-        B = B + noise
-        B = np.clip(B, 0, 255)
+        if(bruit):
+            noise = np.random.normal(0, 25, B.shape)
+            B = B + noise
+        # Ajout d'un halo
+        if(halo):
+            halo_radius = 400
+            halo_intensity = 100
+            center_x, center_y = NbHE // 2, NbVE // 2
+            for i in range(NbVE):
+                for j in range(NbHE):
+                    distance = np.sqrt((i - center_y)**2 + (j - center_x)**2)
+                    if distance > halo_radius:
+                        B[i, j, :] = np.clip(B[i, j, :] + halo_intensity * (1 - distance / halo_radius), 0, 255)
+        B = np.clip(B, 0, 255) 
         B = uint8(B)
 
         # enregistrement

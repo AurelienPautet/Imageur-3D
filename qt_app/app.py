@@ -30,7 +30,7 @@ from franges_objet import faire_franges_objets
 from franges_recepteur import faire_franges_recepteur
 from Trames_binaires import faire_franges
 sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_inverse')
-
+from Local_cotes_franges import localisation_cotes_franges
 from Coord3D_objet import genere_coord3D
 
 class PrintWrapper(io.StringIO):
@@ -80,11 +80,13 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.timer.start(1000) 
         self.simulateObjectButton.clicked.connect(self.generer_objet)
         self.frangesButton.clicked.connect(self.genrere_franges)
-        self.TroisDButton.clicked.connect(self.genere_objet_3D)
+        self.TroisDButton.clicked.connect(self.genere_cotes_franges)
+        self.autoButton.clicked.connect(self.autoButtonClicked)
         self.threadpool = QThreadPool()
         self.numberoftabs = 0
         self.imagetabs = {}
         self.imagelabels = {}
+        self.auto = False
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
 
@@ -95,9 +97,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
     def print_output(self, s):
         print(s)
 
-    def thread_complete(self):
-        self.add_image_to_tab(self.resultTabWidget,"Objet1.png")
-        print("THREAD COMPLETE!")
+
 
     def add_image_to_tab(self,tab,image_path):
         self.numberoftabs += 1
@@ -113,6 +113,11 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.imagelabels[self.numberoftabs].setPixmap(QPixmap(image_path))
         self.imagelabels[self.numberoftabs].setScaledContents(True)  # Ajuste l'image à la taille du QLabel
         tab.setCurrentIndex(self.numberoftabs)
+    
+    def autoButtonClicked(self):
+        self.auto = True
+        self.generer_objet()
+
     def generer_objet(self):
         # Pass the function to execute
         worker = Worker(create_and_display_object) # Any other args, kwargs are passed to the run function
@@ -121,6 +126,12 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         worker.signals.progress.connect(self.progress_fn)
         # Execute
         self.threadpool.start(worker)
+
+    def thread_complete(self):
+        self.add_image_to_tab(self.resultTabWidget,"Objet1.png")
+        print("THREAD COMPLETE!")
+        if(self.auto):
+            self.genrere_franges()
     
     def genrere_franges_objet(self):
         worker = Worker(faire_franges_objets) 
@@ -138,7 +149,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.genrere_franges_recepteur()
 
     def genrere_franges(self):
-        worker = Worker(faire_franges) 
+        worker = Worker(faire_franges,bruit = self.checkBox.isChecked(),halo = self.checkBox_2.isChecked())
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_complete)
         worker.signals.progress.connect(self.progress_fn)
@@ -165,6 +176,8 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         for k in range(N):
             self.add_image_to_tab(self.resultTabWidget,'IRZoom' + str(k+1) + '.bmp'   )
         print("THREAD COMPLETE!")
+        if self.auto:
+            self.genere_cotes_franges()
 
     def genere_objet_3D(self):
         worker = Worker(genere_coord3D) 
@@ -173,7 +186,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         worker.signals.progress.connect(self.progress_fn)
         # Execute
         self.threadpool.start(worker)
-    
+        
     def genere_objet_3D_complete(self):
         self.add_image_to_tab(self.resultTabWidget,"Nuances.png")
         self.fig = Figure(figsize=(5, 3))
@@ -187,7 +200,24 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         Y = loadtxt('Y_scan.txt')
         Z = loadtxt('Z_scan.txt')
         self.axes.scatter(X, Y, Z,s=0.5)
+        self.axes.set_xlabel('X')
+        self.axes.set_ylabel('Y')
+        self.axes.set_zlabel('Z')
+        self.axes.set_aspect('equal')
+        self.fig.tight_layout()
 
+
+    def genere_cotes_franges(self):
+        print("genere_cotes_franges")
+        worker = Worker(localisation_cotes_franges) 
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.genere_cotes_franges_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        self.threadpool.start(worker)
+
+
+    def genere_cotes_franges_complete(self):
+        self.genere_objet_3D()
 
     def update_console(self):
         oldvertical = self.consoleLayout.verticalScrollBar().value()
