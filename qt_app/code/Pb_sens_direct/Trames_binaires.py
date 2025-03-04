@@ -16,7 +16,7 @@ def faire_franges(progress_callback,bruit,halo):
     start_time = time.process_time()  # début mesure temps d'éxecusion
     progress_callback.emit(0)
     # Définition du nombre de trames
-    N = 5
+    N = 6
     f = open('N.txt', 'w')
     f.write('%d' % N)
     f.close()
@@ -83,4 +83,4 @@ class callback():
 
 
 if __name__ == '__main__':
-    faire_franges(callback())
+    faire_franges(callback(), False, False)

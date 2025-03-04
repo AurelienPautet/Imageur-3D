@@ -126,7 +126,7 @@ def faire_franges_recepteur(progress_callback):
 
     #Matrice MR
     MR = ICR.dot(AR)
-    savetxt('MR.txt', MR, fmt='%-7.9f')
+    #savetxt('MR.txt', MR, fmt='%-7.9f')
     progress_callback.emit(10)
     #--------- Projection sur récepteur ------------
     sRuR1 = MR[0,0]*X + MR[0,1]*Y + MR[0,2]*Z + MR[0,3]

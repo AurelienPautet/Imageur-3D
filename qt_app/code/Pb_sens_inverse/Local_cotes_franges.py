@@ -41,25 +41,38 @@ def localisation_cotes_franges(progress_callback):
     PosiDroite = zeros((NbHRzoom,NbVRzoom))
 
     # Seuillage de l'image
-    threshold = 30
+    threshold = 230
     # chargement de l'image puis binarisation 
     for k in range (N):
 
         #------ Chargement des images d'intensité IRZoom de l'objet dans le repere recepteur ---  
-        Nom = f'IRZoom{str(k + 1)}.bmp'
+        #Nom = f'IRZoom{str(k + 1)}.bmp'
+        Nom = f'capture{str(k + 1)}.bmp'
+        # Resize the image to 1080x1500
         img = io.imread(Nom)
+        img = img[:1080, :1500]
 
-        img[:, :, 0] = filters.median(img[:, :, 0], disk(10))
+        img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
         idx = img[:,:,0] > threshold
         img[idx,0] = 255
+        img[idx,1] = 0
+        img[idx,2] = 0
+        idx = img[:,:,0] <= threshold
+        img[idx,0] = 0
+        img[idx,1] = 0
+        img[idx,2] = 0
         io.imsave(f'processed_IRZoom_bis{str(k + 1)}.bmp', img)
-        img[:, :, 0] = filters.median(img[:, :, 0], disk(10))
+        img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom_bis_bis{str(k + 1)}.bmp', img)
         idx = img[:,:,0] > threshold
         img[idx,0] = 255
+
         idx = img[:,:,0] <= threshold
         img[idx,0] = 0
+        img[idx,1] = 0
+        img[idx,2] = 0
+
         IRz = (img/255)
         # On enregistre les IRzoom_1 2 3 ... dans IR_zoom
         #IRz[:,:,0] = filters.median(IRz[:,:,0], disk(5))

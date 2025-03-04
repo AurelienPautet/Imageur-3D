@@ -100,7 +100,8 @@ def faire_franges_objets(progress_callback):
 
     # Matrice ME
     ME = ICE.dot(AE)
-    np.savetxt('ME.txt', ME, fmt='%-7.9f')
+    
+    #np.savetxt('ME.txt', ME, fmt='%-7.9f')
 
     # ------ Calcul des images de franges objet pour les N trames ------
     for k in range(N):

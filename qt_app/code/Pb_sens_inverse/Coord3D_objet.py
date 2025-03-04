@@ -142,6 +142,8 @@ def genere_coord3D(progress_callback):
 class callback():
    def emit(self, value):
       print(value)
+      if value == 100:
+         plt.show()
 
 if __name__ == '__main__':
    genere_coord3D( callback())

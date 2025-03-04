@@ -119,12 +119,18 @@ class AnotherWindow(QWidget):
         self.currentTram += 1
         if self.currentTram > loadtxt('N.txt', np.int32):
             self.currentTram = 1
-        #self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+        
+        self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+        """
         NbHE = 1280  # sur horizontal
         NbVE = 800  # sur vertical
-        white_image = np.ones((NbVE, NbHE, 3), np.uint8) * 255
+        white_image = np.zeros((NbVE, NbHE, 3), np.uint8) * 255
         cv2.imwrite("white_image.bmp", white_image)
         self.label.setPixmap(QPixmap("white_image.bmp"))
+        self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        """
+        
+
 
 
 class MyApp(QMainWindow, Ui_Imageur3D):
@@ -134,6 +140,9 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_console)  
         self.timer.start(10) 
+        self.cam_timer = QTimer(self)
+        self.cam_timer.timeout.connect(self.update_camera)  
+        self.cam_timer.start(17) 
         self.simulateObjectButton.clicked.connect(self.generer_objet)
         self.frangesButton.clicked.connect(self.genrere_franges)
         self.TroisDButton.clicked.connect(self.genere_cotes_franges)
@@ -146,20 +155,17 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
         self.w = AnotherWindow()
         screens = app.screens()
-        # one way; with two screens    
+
         if len(screens) > 1:
             screen = screens[1]
         else:
             screen = screens[0]
 
-        # Another way to remove primary screen and choose from remaining screens
-        # current_screen = app.primaryScreen()
-        # screens.remove(current_screen)
-        # screen = screens[0]
-
         qr = screen.geometry()
         self.w.move(qr.left(), qr.top())
         self.w.showFullScreen()
+        self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.bmp")
+
 
     def progress_fn(self, n):
         self.progressBar_2.setValue(n)
@@ -290,6 +296,17 @@ class MyApp(QMainWindow, Ui_Imageur3D):
     def genere_cotes_franges_complete(self):
         self.genere_objet_3D()
 
+    def update_camera(self):
+        ret, frame = capture.read()
+        if ret:
+            if self.resultTabWidget_3.currentIndex() == 1:
+                self.imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+            # Draw a cross at the center of the frame
+            center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
+            #cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2)  # Vertical line
+            #cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2)  # Horizontal line
+            #cv2.imshow('frame', frame)
+
     def update_console(self):
         oldvertical = self.consoleLayout.verticalScrollBar().value()
         self.consoleLayout.setText(print.getvalue())
@@ -297,12 +314,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             self.consoleLayout.verticalScrollBar().setValue(self.consoleLayout.verticalScrollBar().maximum())
         else:
             self.consoleLayout.verticalScrollBar().setValue(oldvertical)
-        """ret, frame = capture.read()
-        
-        if ret:
-            self.w.label.setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
-            cv2.imshow('frame', frame)
-        """
 
 if __name__ == "__main__":
     if not QApplication.instance():
