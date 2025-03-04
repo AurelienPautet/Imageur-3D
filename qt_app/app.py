@@ -1,4 +1,6 @@
 import sys
+import os
+os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 from PySide6 import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
@@ -10,7 +12,6 @@ import traceback, sys
 
 import builtins
 import io
-import os
 import threading
 import time
 
@@ -39,6 +40,28 @@ class PrintWrapper(io.StringIO):
 
 print = PrintWrapper()
 print.getvalue()
+
+
+
+import cv2
+
+HIGH_VALUE = 10000
+WIDTH = 1920
+HEIGHT = 1080
+
+capture = cv2.VideoCapture(1)
+
+capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+capture.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+capture.set(cv2.CAP_PROP_FPS, 60);
+capture.set(cv2.CAP_PROP_EXPOSURE, -30)  # Adjust exposure value as needed
+capture.set(cv2.CAP_PROP_SATURATION, 100)  # Adjust saturation value as needed
+width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = capture.get(cv2.CAP_PROP_FPS)
+
+print(width, height, fps)
 
 class WorkerSignals(QObject):
     finished = Signal()
@@ -69,6 +92,39 @@ class Worker(QRunnable):
             self.signals.finished.emit()  
 
 
+class AnotherWindow(QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.new_trame)  
+        self.timer.start(500) 
+        self.label = QLabel("Another Window")
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(0, 0, 1920, 1080))
+        self.label.setPixmap(QPixmap("Trame5.bmp"))
+        self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+        self.currentTram = 1;
+
+    def new_trame(self):
+        ret, frame = capture.read()
+        if ret:
+            cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
+        self.currentTram += 1
+        if self.currentTram > loadtxt('N.txt', np.int32):
+            self.currentTram = 1
+        #self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+        NbHE = 1280  # sur horizontal
+        NbVE = 800  # sur vertical
+        white_image = np.ones((NbVE, NbHE, 3), np.uint8) * 255
+        cv2.imwrite("white_image.bmp", white_image)
+        self.label.setPixmap(QPixmap("white_image.bmp"))
 
 
 class MyApp(QMainWindow, Ui_Imageur3D):
@@ -77,7 +133,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.setupUi(self)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_console)  
-        self.timer.start(1000) 
+        self.timer.start(10) 
         self.simulateObjectButton.clicked.connect(self.generer_objet)
         self.frangesButton.clicked.connect(self.genrere_franges)
         self.TroisDButton.clicked.connect(self.genere_cotes_franges)
@@ -88,7 +144,22 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.imagelabels = {}
         self.auto = False
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        self.w = AnotherWindow()
+        screens = app.screens()
+        # one way; with two screens    
+        if len(screens) > 1:
+            screen = screens[1]
+        else:
+            screen = screens[0]
 
+        # Another way to remove primary screen and choose from remaining screens
+        # current_screen = app.primaryScreen()
+        # screens.remove(current_screen)
+        # screen = screens[0]
+
+        qr = screen.geometry()
+        self.w.move(qr.left(), qr.top())
+        self.w.showFullScreen()
 
     def progress_fn(self, n):
         self.progressBar_2.setValue(n)
@@ -226,6 +297,12 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             self.consoleLayout.verticalScrollBar().setValue(self.consoleLayout.verticalScrollBar().maximum())
         else:
             self.consoleLayout.verticalScrollBar().setValue(oldvertical)
+        """ret, frame = capture.read()
+        
+        if ret:
+            self.w.label.setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+            cv2.imshow('frame', frame)
+        """
 
 if __name__ == "__main__":
     if not QApplication.instance():
@@ -236,3 +313,5 @@ if __name__ == "__main__":
     window.show()
  
     sys.exit(app.exec_())
+    capture.release()
+    cv2.destroyAllWindows() 
