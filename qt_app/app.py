@@ -23,6 +23,9 @@ from matplotlib.backends.backend_qtagg import \
 from matplotlib.backends.qt_compat import QtWidgets
 from matplotlib.figure import Figure
 
+basedir = os.path.dirname()
+
+
 sys.path.insert(0, 'C:/Users/aurel/OneDrive/Bureau/imageur 3D/qt_app/code/Pb_sens_direct')
 #sys.path.insert(0, '/Users/thomas/Desktop/pronto/qt_app/code/Pb_sens_direct')
 from numpy import loadtxt
@@ -49,7 +52,7 @@ HIGH_VALUE = 10000
 WIDTH = 1920
 HEIGHT = 1080
 
-capture = cv2.VideoCapture(1)
+capture = cv2.VideoCapture(0)
 
 capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
