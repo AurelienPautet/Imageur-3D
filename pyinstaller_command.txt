@@ -1,0 +1,1 @@
+pyinstaller app.py --noconsole --add-data "qt_app;qt_app" --name Imageur3D --noconfirm

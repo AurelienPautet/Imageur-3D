@@ -2,3 +2,7 @@ env/
 .env
 venv/
 .venv
+build/
+dist/
+.build/
+.dist/
