@@ -1,3 +1,4 @@
+from re import S
 import sys
 import os
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
@@ -59,19 +60,11 @@ HIGH_VALUE = 10000
 WIDTH = 1920
 HEIGHT = 1080
 
-capture = cv2.VideoCapture(0)
 
-capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-capture.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
-capture.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
-capture.set(cv2.CAP_PROP_FPS, 60);
-capture.set(cv2.CAP_PROP_EXPOSURE, -30)  # Adjust exposure value as needed
-capture.set(cv2.CAP_PROP_SATURATION, 100)  # Adjust saturation value as needed
-width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-fps = capture.get(cv2.CAP_PROP_FPS)
 
-print(width, height, fps)
+
+
+
 
 try:
     from ctypes import windll  # Only exists on Windows.
@@ -130,7 +123,7 @@ class AnotherWindow(QWidget):
         self.currentTram = 1;
 
     def new_trame(self):
-        ret, frame = capture.read()
+        ret, frame = window.capture.read()
         if ret:
             cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
         self.currentTram += 1
@@ -138,16 +131,22 @@ class AnotherWindow(QWidget):
             self.currentTram = 1
         
         self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
-        """
-        NbHE = 1280  # sur horizontal
-        NbVE = 800  # sur vertical
-        white_image = np.zeros((NbVE, NbHE, 3), np.uint8) * 255
-        cv2.imwrite("white_image.bmp", white_image)
-        self.label.setPixmap(QPixmap("white_image.bmp"))
-        self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
-        """
+        if window.mire_emet_check.isChecked():
+            NbHE = 1280  # sur horizontal
+            NbVE = 800  # sur vertical
+            white_image = np.ones((NbVE, NbHE, 3), np.uint8) * 255
+            cv2.line(white_image, (NbHE // 2, 0), (NbHE // 2, NbVE), (0, 0, 255), 2)  
+            cv2.line(white_image, (0, NbVE // 2), (NbHE, NbVE // 2), (0, 0, 255), 2) 
+            cv2.imwrite("white_image.bmp", white_image)
+            self.label.setPixmap(QPixmap("white_image.bmp"))
+            self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
         
-
+        
+class tab_maneger():
+    def __init__(self):
+        self.numberoftabs = 0
+        self.imagetabs = {}
+        self.imagelabels = {}
 
 
 class MyApp(QMainWindow, Ui_Imageur3D):
@@ -165,9 +164,11 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.TroisDButton.clicked.connect(self.genere_cotes_franges)
         self.autoButton.clicked.connect(self.autoButtonClicked)
         self.threadpool = QThreadPool()
-        self.numberoftabs = 0
-        self.imagetabs = {}
-        self.imagelabels = {}
+
+        self.sim_tab = tab_maneger()
+        self.scan_tab = tab_maneger()
+        self.capturing = False
+        self.tab_dict ={self.resultTabWidget_3:self.scan_tab,self.resultTabWidget:self.sim_tab}
         self.auto = False
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
         self.w = AnotherWindow()
@@ -183,30 +184,50 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.w.showFullScreen()
         self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.bmp")
 
-
+        self.EXPOSURE = -30
+        self.SATURATION = 100
     def progress_fn(self, n):
-        self.progressBar_2.setValue(n)
+        self.progressBar.setValue(n)
         print("%d%% done" % n)
 
     def print_output(self, s):
         print(s)
 
+    def startcapture(self):
+        if not self.capturing:
+            self.capture = cv2.VideoCapture(0)
+            self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+            self.capture.set(cv2.CAP_PROP_FPS, 60);
+            self.capture.set(cv2.CAP_PROP_EXPOSURE, self.EXPOSURE)  # Adjust exposure value as needed
+            self.capture.set(cv2.CAP_PROP_SATURATION, self.SATURATION)  # Adjust saturation value as needed
+            width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = self.capture.get(cv2.CAP_PROP_FPS)
+            print(width, height, fps)
+            self.capturing = True
+
+    def endcapture(self):
+        if self.capturing:
+            self.capture.release()
+            self.capturing = False
+
 
 
     def add_image_to_tab(self,tab,image_path):
-        self.numberoftabs += 1
-        self.imagetabs[self.numberoftabs] = QWidget()
-        self.imagetabs[self.numberoftabs].setObjectName(u"tab_4")
-
-        tab.addTab(self.imagetabs[self.numberoftabs], "")
-        self.resultTabWidget.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", image_path, None))
-
-        self.imagelabels[self.numberoftabs] = QLabel(self.imagetabs[self.numberoftabs])
-        self.imagelabels[self.numberoftabs].setObjectName(image_path)
-        self.imagelabels[self.numberoftabs].setGeometry(QRect(0, 0, 621, 321))
-        self.imagelabels[self.numberoftabs].setPixmap(QPixmap(image_path))
-        self.imagelabels[self.numberoftabs].setScaledContents(True)  # Ajuste l'image à la taille du QLabel
-        tab.setCurrentIndex(self.numberoftabs)
+        self.tab_dict[tab].numberoftabs += 1
+        numerotab = self.tab_dict[tab].numberoftabs
+        self.tab_dict[tab].imagetabs[numerotab]= QWidget()
+        self.tab_dict[tab].imagetabs[numerotab].setObjectName(u"tab_4")
+        tab.addTab(self.tab_dict[tab].imagetabs[numerotab], "")
+        self.resultTabWidget.setTabText(numerotab, QCoreApplication.translate("Imageur3D", image_path, None))
+        self.tab_dict[tab].imagelabels[numerotab] = QLabel(self.tab_dict[tab].imagetabs[numerotab])
+        self.tab_dict[tab].imagelabels[numerotab].setObjectName(image_path)
+        self.tab_dict[tab].imagelabels[numerotab].setGeometry(QRect(0, 0, 1280, 720))
+        self.tab_dict[tab].imagelabels[numerotab].setPixmap(QPixmap(image_path))
+        self.tab_dict[tab].imagelabels[numerotab].setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        tab.setCurrentIndex(numerotab)
     
     def autoButtonClicked(self):
         self.auto = True
@@ -314,16 +335,22 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.genere_objet_3D()
 
     def update_camera(self):
-        ret, frame = capture.read()
-        if ret:
-            if self.resultTabWidget_3.currentIndex() == 1:
-                self.imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
-            # Draw a cross at the center of the frame
-            center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
-            #cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2)  # Vertical line
-            #cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2)  # Horizontal line
-            #cv2.imshow('frame', frame)
+        #print("update_camera",self.capturing,self.capture)
+        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
+            self.startcapture()
+            ret, frame = self.capture.read()
+            if ret:
+                self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+                if self.mire_recep_check.isChecked():            
+                    center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
+                    cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2) 
+                    cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2) 
+                    self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+                    #cv2.imshow('frame', frame)
+        else :
+            self.endcapture()
 
+           
     def update_console(self):
         oldvertical = self.consoleLayout.verticalScrollBar().value()
         self.consoleLayout.setText(print.getvalue())
@@ -344,8 +371,8 @@ if __name__ == "__main__":
     sys.path.insert(0, basedir)
     os.chdir(os.path.join(basedir, 'qt_app/active_files'))
     window = MyApp()
-    window.show()
+    window.showFullScreen()
  
-    sys.exit(app.exec_())
-    capture.release()
+    sys.exit(app.exec())
+    window.endcapture()
     cv2.destroyAllWindows() 
