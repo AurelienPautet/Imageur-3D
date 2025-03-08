@@ -1,4 +1,3 @@
-from re import S
 import sys
 import os
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
@@ -123,14 +122,16 @@ class AnotherWindow(QWidget):
         self.currentTram = 1;
 
     def new_trame(self):
-        ret, frame = window.capture.read()
-        if ret:
-            cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
-        self.currentTram += 1
-        if self.currentTram > loadtxt('N.txt', np.int32):
-            self.currentTram = 1
-        
-        self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+        if False:
+            window.startcapture()
+            ret, frame = window.capture.read()
+            if ret:
+                cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
+            self.currentTram += 1
+            if self.currentTram > loadtxt('N.txt', np.int32):
+                self.currentTram = 1
+            
+            self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
         if window.mire_emet_check.isChecked():
             NbHE = 1280  # sur horizontal
             NbVE = 800  # sur vertical
@@ -163,6 +164,12 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.frangesButton.clicked.connect(self.genrere_franges)
         self.TroisDButton.clicked.connect(self.genere_cotes_franges)
         self.autoButton.clicked.connect(self.autoButtonClicked)
+        self.slider_exp.valueChanged.connect(self.slider_exp_changed)
+        self.slider_sat.valueChanged.connect(self.slider_sat_changed)
+        self.slider_cont.valueChanged.connect(self.slider_cont_changed)
+
+        self.resultTabWidget_3.mousePressEvent = self.mousePressEvent
+
         self.threadpool = QThreadPool()
 
         self.sim_tab = tab_maneger()
@@ -183,9 +190,12 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.w.move(qr.left(), qr.top())
         self.w.showFullScreen()
         self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.bmp")
-
+    
         self.EXPOSURE = -30
         self.SATURATION = 100
+        self.CONTRAST = 100
+
+        self.clicked_points = [] 
     def progress_fn(self, n):
         self.progressBar.setValue(n)
         print("%d%% done" % n)
@@ -202,10 +212,11 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             self.capture.set(cv2.CAP_PROP_FPS, 60);
             self.capture.set(cv2.CAP_PROP_EXPOSURE, self.EXPOSURE)  # Adjust exposure value as needed
             self.capture.set(cv2.CAP_PROP_SATURATION, self.SATURATION)  # Adjust saturation value as needed
+            self.capture.set(cv2.CAP_PROP_CONTRAST, self.CONTRAST)  # Adjust contrast value as needed
             width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = self.capture.get(cv2.CAP_PROP_FPS)
-            print(width, height, fps)
+            #print(width, height, fps)
             self.capturing = True
 
     def endcapture(self):
@@ -213,7 +224,82 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             self.capture.release()
             self.capturing = False
 
+    def get_photo_x_y(self):
+        cursor = QCursor()
+        pos = cursor.pos()
+        x = pos.x()
+        y = pos.y()
+        x = x - self.resultTabWidget_3.x() - self.tabWidget.x() -3
+        y = y - self.resultTabWidget_3.y() - self.tabWidget.y() -31*2 -3
+        return x, y
 
+    def mousePressEvent(self, event):
+        x, y = self.get_photo_x_y()
+        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
+            if x >= 0 and y >= 0 and x < 1280 and y < 720:
+                self.clicked_points.append((x, y))
+                print("clicked", x, y)
+    def update_camera(self):
+        x,y = self.get_photo_x_y()
+        #print("update_camera",self.capturing,self.capture)
+        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
+            self.startcapture()
+            ret, frame = self.capture.read()
+            if ret:
+                for points in self.clicked_points:
+                    cv2.circle(frame, points, 5, (0, 0, 255), -1)
+
+                self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+                if self.mire_recep_check.isChecked():            
+                    center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
+                    cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2) 
+                    cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2) 
+                    self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+                    #cv2.imshow('frame', frame)
+                if x >= 0 and y >= 0 and x < 1280 and y < 720:
+                    zoom = frame[max(0, y-25):min(frame.shape[0], y+25), max(0, x-25):min(frame.shape[1], x+25)]
+                    zoom = cv2.resize(zoom, (50, 50), interpolation=cv2.INTER_LINEAR)
+                    zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
+                    cross_size = 25
+                    cross_color = (250, 250, 250)  # Green color
+                    center_x, center_y = 125, 125  # Center of the zoomed area
+                    cv2.line(zoom, (center_x - cross_size, center_y), (center_x + cross_size, center_y), cross_color, 1)
+                    cv2.line(zoom, (center_x, center_y - cross_size), (center_x, center_y + cross_size), cross_color, 1)
+                    zoom_qimage = QImage(zoom.data, zoom.shape[1], zoom.shape[0], zoom.strides[0], QImage.Format_RGB888).rgbSwapped()
+                    self.label_zoom.setPixmap(QPixmap.fromImage(zoom_qimage))
+                    self.label_zoom.setScaledContents(True)
+                    
+
+        else :
+            self.endcapture()
+
+           
+    def update_console(self):
+        oldvertical = self.consoleLayout.verticalScrollBar().value()
+        self.consoleLayout.setText(print.getvalue())
+        if(self.autoScrollButton.isChecked()):
+            self.consoleLayout.verticalScrollBar().setValue(self.consoleLayout.verticalScrollBar().maximum())
+        else:
+            self.consoleLayout.verticalScrollBar().setValue(oldvertical)
+
+
+    def slider_exp_changed(self):
+        self.EXPOSURE = self.slider_exp.value()
+        self.label_val_exp.setText(str(self.EXPOSURE))
+        if self.capturing:
+            self.capture.set(cv2.CAP_PROP_EXPOSURE, self.EXPOSURE)
+    
+    def slider_sat_changed(self):
+        self.SATURATION = self.slider_sat.value()
+        self.label_val_sat.setText(str(self.SATURATION))
+        if self.capturing:
+            self.capture.set(cv2.CAP_PROP_SATURATION, self.SATURATION)
+    
+    def slider_cont_changed(self):
+        self.CONTRAST = self.slider_cont.value()
+        self.label_val_cont.setText(str(self.CONTRAST))
+        if self.capturing:
+            self.capture.set(cv2.CAP_PROP_CONTRAST, self.CONTRAST)
 
     def add_image_to_tab(self,tab,image_path):
         self.tab_dict[tab].numberoftabs += 1
@@ -334,30 +420,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
     def genere_cotes_franges_complete(self):
         self.genere_objet_3D()
 
-    def update_camera(self):
-        #print("update_camera",self.capturing,self.capture)
-        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
-            self.startcapture()
-            ret, frame = self.capture.read()
-            if ret:
-                self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
-                if self.mire_recep_check.isChecked():            
-                    center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
-                    cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2) 
-                    cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2) 
-                    self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
-                    #cv2.imshow('frame', frame)
-        else :
-            self.endcapture()
-
-           
-    def update_console(self):
-        oldvertical = self.consoleLayout.verticalScrollBar().value()
-        self.consoleLayout.setText(print.getvalue())
-        if(self.autoScrollButton.isChecked()):
-            self.consoleLayout.verticalScrollBar().setValue(self.consoleLayout.verticalScrollBar().maximum())
-        else:
-            self.consoleLayout.verticalScrollBar().setValue(oldvertical)
 
 if __name__ == "__main__":
 
