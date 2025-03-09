@@ -12,11 +12,11 @@ from numpy import linspace, zeros, savetxt, sin, pi, uint8
 import matplotlib.pyplot as plt
 from skimage import io    
 
-def faire_franges(progress_callback,bruit,halo):
+def faire_franges(progress_callback,bruit,halo,N):
     start_time = time.process_time()  # début mesure temps d'éxecusion
     progress_callback.emit(0)
     # Définition du nombre de trames
-    N = 6
+    N = N
     f = open('N.txt', 'w')
     f.write('%d' % N)
     f.close()

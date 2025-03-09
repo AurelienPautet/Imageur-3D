@@ -59,15 +59,9 @@ HIGH_VALUE = 10000
 WIDTH = 1920
 HEIGHT = 1080
 
-
-
-
-
-
-
 try:
-    from ctypes import windll  # Only exists on Windows.
-    myappid = 'mycompany.myproduct.subproduct.version'
+    from ctypes import windll 
+    myappid = 'GR9-2.PRONTO.IMAGEUR-3D.v0'
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except ImportError:
     pass
@@ -121,18 +115,16 @@ class AnotherWindow(QWidget):
         self.setLayout(layout)
         self.currentTram = 1;
 
+
     def new_trame(self):
         if False:
             window.startcapture()
             ret, frame = window.capture.read()
             if ret:
                 cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
-            self.currentTram += 1
-            if self.currentTram > loadtxt('N.txt', np.int32):
-                self.currentTram = 1
-            
-            self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+
         if window.mire_emet_check.isChecked():
+            window.afficher_frange_checkbox.setChecked(False)
             NbHE = 1280  # sur horizontal
             NbVE = 800  # sur vertical
             white_image = np.ones((NbVE, NbHE, 3), np.uint8) * 255
@@ -141,6 +133,13 @@ class AnotherWindow(QWidget):
             cv2.imwrite("white_image.bmp", white_image)
             self.label.setPixmap(QPixmap("white_image.bmp"))
             self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+
+        if window.afficher_frange_checkbox.isChecked():
+            self.currentTram += 1
+            if self.currentTram > loadtxt('N.txt', np.int32):
+                self.currentTram = 1
+            self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+
         
         
 class tab_maneger():
@@ -161,7 +160,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.cam_timer.timeout.connect(self.update_camera)  
         self.cam_timer.start(17) 
         self.simulateObjectButton.clicked.connect(self.generer_objet)
-        self.frangesButton.clicked.connect(self.genrere_franges)
+        self.frangesButton.clicked.connect(lambda: self.genrere_franges(show=True))
         self.TroisDButton.clicked.connect(self.genere_cotes_franges)
         self.autoButton.clicked.connect(self.autoButtonClicked)
         self.slider_exp.valueChanged.connect(self.slider_exp_changed)
@@ -169,7 +168,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.slider_cont.valueChanged.connect(self.slider_cont_changed)
 
         self.resultTabWidget_3.mousePressEvent = self.mousePressEvent
-
+        self.generate_frange_button.clicked.connect(lambda: self.genrere_franges(show=False, N=self.number_of_franges.value()))
         self.threadpool = QThreadPool()
 
         self.sim_tab = tab_maneger()
@@ -191,14 +190,34 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.w.showFullScreen()
         self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.bmp")
     
-        self.EXPOSURE = -30
+        self.EXPOSURE = 0
         self.SATURATION = 100
         self.CONTRAST = 100
 
         self.clicked_points = [] 
+
+        self.save_img_button.clicked.connect(self.save_file_dialog)
+
+    def save_file_dialog(self):
+        current_tab = self.tabWidget.currentIndex()
+        if current_tab == 0:
+            sb_tab = self.resultTabWidget_3.currentIndex()
+            file_to_save = self.tab_dict[self.resultTabWidget_3].imagelabels[sb_tab].pixmap()
+            file_name = self.resultTabWidget_3.tabText(sb_tab)
+        else:
+            sb_tab = self.resultTabWidget.currentIndex()
+            file_to_save = self.tab_dict[self.resultTabWidget].imagelabels[sb_tab].pixmap()
+            file_name = self.resultTabWidget.tabText(sb_tab)
+
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save File", file_name, "All Files (*);;Image Files (*.png *.jpg *.bmp)", options=options)
+        if file_name:
+            file_to_save.save(file_name)
+            print("file save :", file_name)   
+
     def progress_fn(self, n):
         self.progressBar.setValue(n)
-        print("%d%% done" % n)
 
     def print_output(self, s):
         print(s)
@@ -258,13 +277,21 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                     #cv2.imshow('frame', frame)
                 if x >= 0 and y >= 0 and x < 1280 and y < 720:
                     zoom = frame[max(0, y-25):min(frame.shape[0], y+25), max(0, x-25):min(frame.shape[1], x+25)]
-                    zoom = cv2.resize(zoom, (50, 50), interpolation=cv2.INTER_LINEAR)
-                    zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
-                    cross_size = 25
+                    if zoom.shape[0] < 50 or zoom.shape[1] < 50:
+                        zoom = cv2.copyMakeBorder(zoom, 
+                                                  top=max(0, 25 - y), 
+                                                  bottom=max(0, y + 25 - frame.shape[0]), 
+                                                  left=max(0, 25 - x), 
+                                                  right=max(0, x + 25 - frame.shape[1]), 
+                                                  borderType=cv2.BORDER_CONSTANT, 
+                                                  value=[0, 0, 0])
+                    cross_size = 5
                     cross_color = (250, 250, 250)  # Green color
-                    center_x, center_y = 125, 125  # Center of the zoomed area
+                    center_x, center_y = 25, 25  # Center of the zoomed area
                     cv2.line(zoom, (center_x - cross_size, center_y), (center_x + cross_size, center_y), cross_color, 1)
                     cv2.line(zoom, (center_x, center_y - cross_size), (center_x, center_y + cross_size), cross_color, 1)
+                    zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
+
                     zoom_qimage = QImage(zoom.data, zoom.shape[1], zoom.shape[0], zoom.strides[0], QImage.Format_RGB888).rgbSwapped()
                     self.label_zoom.setPixmap(QPixmap.fromImage(zoom_qimage))
                     self.label_zoom.setScaledContents(True)
@@ -320,6 +347,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.generer_objet()
 
     def generer_objet(self):
+        print("debut d'éxecution de generer_objet")
         # Pass the function to execute
         worker = Worker(create_and_display_object) # Any other args, kwargs are passed to the run function
         worker.signals.result.connect(self.print_output)
@@ -329,12 +357,14 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
 
     def thread_complete(self):
+        print("fin d'exécution de generer_objet")   
         self.add_image_to_tab(self.resultTabWidget,"Objet1.png")
         print("THREAD COMPLETE!")
         if(self.auto):
             self.genrere_franges()
     
     def genrere_franges_objet(self):
+        print("debut d'éxecution de genrere_franges_objet")
         worker = Worker(faire_franges_objets) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_objet_complete)
@@ -342,29 +372,33 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
     
     def frange_objet_complete(self):
+        print("fin d'exécution de genrere_franges_objet")
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
             self.add_image_to_tab(self.resultTabWidget,'I' + str(k + 1) + '.bmp')
-        print("THREAD COMPLETE!")
         self.genrere_franges_recepteur()
 
-    def genrere_franges(self):
-        worker = Worker(faire_franges,bruit = self.checkBox.isChecked(),halo = self.checkBox_2.isChecked())
+    def genrere_franges(self,show = True,N=5):
+        print("debut d'éxecution de genrere_franges")
+        worker = Worker(faire_franges,bruit = (self.checkBox.isChecked() and show),halo = (self.checkBox_2.isChecked()and show),N=N)
         worker.signals.result.connect(self.print_output)
-        worker.signals.finished.connect(self.frange_complete)
+        print("show",show)
+        if show:
+            worker.signals.finished.connect(self.frange_complete)
         worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
     
     def frange_complete(self):
+        print("fin d'exécution de genrere_franges")
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
             self.add_image_to_tab(self.resultTabWidget,'Trame' + str(k+1) + '.bmp')
-        print("THREAD COMPLETE!")
         self.genrere_franges_objet()
     
     def genrere_franges_recepteur(self):
+        print("debut d'éxecution de genrere_franges_recepteur")
         worker = Worker(faire_franges_recepteur) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.frange_recepteur_complete)
@@ -372,15 +406,16 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
     
     def frange_recepteur_complete(self):
+        print("fin d'éxecution de genrere_franges_recepteur")
         N = loadtxt("N.txt")
         N = int(N)
         for k in range(N):
             self.add_image_to_tab(self.resultTabWidget,'IRZoom' + str(k+1) + '.bmp'   )
-        print("THREAD COMPLETE!")
         if self.auto:
             self.genere_cotes_franges()
 
     def genere_objet_3D(self):
+        print("debut d'éxecution de genere_objet_3D")
         worker = Worker(genere_coord3D) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.genere_objet_3D_complete)
@@ -389,6 +424,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
         
     def genere_objet_3D_complete(self):
+        print("fin d'éxecution de genere_objet_3D")
         self.add_image_to_tab(self.resultTabWidget,"Nuances.png")
         self.fig = Figure(figsize=(5, 3))
         static_canvas = FigureCanvas(self.fig)
@@ -409,7 +445,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
 
     def genere_cotes_franges(self):
-        print("genere_cotes_franges")
+        print("debut d'éxecution de genere_cotes_franges")
         worker = Worker(localisation_cotes_franges) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.genere_cotes_franges_complete)
@@ -418,6 +454,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
 
     def genere_cotes_franges_complete(self):
+        print("fin d'éxecution de genere_cotes_franges")
         self.genere_objet_3D()
 
 
