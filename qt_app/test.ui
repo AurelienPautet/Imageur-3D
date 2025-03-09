@@ -383,7 +383,7 @@
       <property name="geometry">
        <rect>
         <x>1530</x>
-        <y>430</y>
+        <y>510</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -409,7 +409,7 @@
       <property name="geometry">
        <rect>
         <x>1530</x>
-        <y>400</y>
+        <y>480</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -422,7 +422,7 @@
       <property name="geometry">
        <rect>
         <x>1410</x>
-        <y>400</y>
+        <y>480</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -435,7 +435,7 @@
       <property name="geometry">
        <rect>
         <x>1410</x>
-        <y>430</y>
+        <y>510</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -444,24 +444,27 @@
        <string>Z=</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="z_emet_spinbox">
+     <widget class="QSpinBox" name="jg">
       <property name="geometry">
        <rect>
         <x>1430</x>
-        <y>430</y>
+        <y>510</y>
         <width>42</width>
         <height>22</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
       <property name="value">
-       <number>10</number>
+       <number>100</number>
       </property>
      </widget>
      <widget class="QLabel" name="emet_z0_nb_point_label">
       <property name="geometry">
        <rect>
         <x>1610</x>
-        <y>400</y>
+        <y>480</y>
         <width>101</width>
         <height>21</height>
        </rect>
@@ -474,7 +477,7 @@
       <property name="geometry">
        <rect>
         <x>1610</x>
-        <y>430</y>
+        <y>510</y>
         <width>101</width>
         <height>21</height>
        </rect>
@@ -487,7 +490,7 @@
       <property name="geometry">
        <rect>
         <x>1790</x>
-        <y>400</y>
+        <y>480</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -500,7 +503,7 @@
       <property name="geometry">
        <rect>
         <x>1790</x>
-        <y>430</y>
+        <y>510</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -513,7 +516,7 @@
       <property name="geometry">
        <rect>
         <x>1710</x>
-        <y>430</y>
+        <y>510</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -526,7 +529,7 @@
       <property name="geometry">
        <rect>
         <x>1710</x>
-        <y>400</y>
+        <y>480</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -539,20 +542,23 @@
       <property name="geometry">
        <rect>
         <x>1430</x>
-        <y>520</y>
+        <y>430</y>
         <width>42</width>
         <height>22</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
       <property name="value">
-       <number>10</number>
+       <number>100</number>
       </property>
      </widget>
      <widget class="QPushButton" name="recep_z0_photo_button">
       <property name="geometry">
        <rect>
         <x>1530</x>
-        <y>490</y>
+        <y>400</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -565,7 +571,7 @@
       <property name="geometry">
        <rect>
         <x>1410</x>
-        <y>490</y>
+        <y>400</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -578,7 +584,7 @@
       <property name="geometry">
        <rect>
         <x>1610</x>
-        <y>520</y>
+        <y>430</y>
         <width>101</width>
         <height>21</height>
        </rect>
@@ -591,7 +597,7 @@
       <property name="geometry">
        <rect>
         <x>1610</x>
-        <y>490</y>
+        <y>400</y>
         <width>101</width>
         <height>21</height>
        </rect>
@@ -604,7 +610,7 @@
       <property name="geometry">
        <rect>
         <x>1790</x>
-        <y>520</y>
+        <y>430</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -617,7 +623,7 @@
       <property name="geometry">
        <rect>
         <x>1710</x>
-        <y>490</y>
+        <y>400</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -630,7 +636,7 @@
       <property name="geometry">
        <rect>
         <x>1410</x>
-        <y>520</y>
+        <y>430</y>
         <width>16</width>
         <height>21</height>
        </rect>
@@ -643,7 +649,7 @@
       <property name="geometry">
        <rect>
         <x>1710</x>
-        <y>520</y>
+        <y>430</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -656,7 +662,7 @@
       <property name="geometry">
        <rect>
         <x>1790</x>
-        <y>490</y>
+        <y>400</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -669,7 +675,7 @@
       <property name="geometry">
        <rect>
         <x>1340</x>
-        <y>510</y>
+        <y>500</y>
         <width>61</width>
         <height>16</height>
        </rect>
@@ -682,7 +688,7 @@
       <property name="geometry">
        <rect>
         <x>1530</x>
-        <y>520</y>
+        <y>430</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -717,7 +723,7 @@
      <zorder>emet_z0_photo_button</zorder>
      <zorder>label_4</zorder>
      <zorder>label_5</zorder>
-     <zorder>z_emet_spinbox</zorder>
+     <zorder>jg</zorder>
      <zorder>emet_z0_nb_point_label</zorder>
      <zorder>emet_zN_nb_point_label</zorder>
      <zorder>emet_z0_reset_button</zorder>

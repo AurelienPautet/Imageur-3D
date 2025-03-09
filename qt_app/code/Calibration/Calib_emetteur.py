@@ -7,6 +7,7 @@ import scipy.optimize
 
 
 def calib_emet(progress_callback):
+    start_time = time.process_time()  # début mesure temps d'exécution
     MRNmes = loadtxt('MRNmes.txt')
     progress_callback.emit(0)
 
@@ -15,7 +16,7 @@ def calib_emet(progress_callback):
     #------------------------------
     """
     RESULTAT THEORIQUE
-    Pt_calib_recep_pixel = np.array([
+    Pt_calib_emet_pixel = np.array([
         [200, 540, 882, 242, 540, 838, 276, 540, 805, 302, 540, 778, 201, 540, 879, 244, 540, 836, 277, 540, 803, 304, 540, 777],
         [596, 596, 596, 960, 960, 960, 1242, 1242, 1242, 1466, 1466, 1466, 707, 707, 707, 1062, 1062, 1062, 1335, 1335, 1335, 1554, 1554, 1554],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
@@ -27,15 +28,31 @@ def calib_emet(progress_callback):
     ])
     """
 
-    Pt_calib_recep_pixel = np.array([
+    pY = []
+    pX = []
+    Z = []
+    emet_z0 =np.loadtxt('emet_z0_points.txt')
+    print(emet_z0,emet_z0[0])
+    for i in range(len(emet_z0)):
+        pX.append(emet_z0[i][0])
+        pY.append(emet_z0[i][1])
+        Z.append(emet_z0[i][2])
+
+    emet_zN =np.loadtxt('emet_zN_points.txt')
+    print(emet_zN,emet_zN[0])
+    for i in range(len(emet_zN)):
+        pX.append(emet_zN[i][0])
+        pY.append(emet_zN[i][1])
+        Z.append(emet_zN[i][2])
+
+    Pt_calib_emet_pixel = np.array([
         [237,536,838,281,540,802,313,543,776,338,545,753,239,535,836,283,540,800,314,543,774,339,544,752],
         [650,656,660,959,966,973,1198,1205,1214,1391,1397,1405,721,728,734,1029,1038,1046,1267,1275,1284,1458,1466,1474],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+        Z
     ])
 
     Pt_aqui_pixel= np.array([
-        [100,400,700,100,400,700,100,400,700,100,400,700,100,400,700,100,400,700,100,400,700,100,400,700],
-        [320,320,320,640,640,640,960,960,960,1280,1280,1280,320,320,320,640,640,640,960,960,960,1280,1280,1280]
+        pY, pX
     ])
 
     n = 24
@@ -44,13 +61,13 @@ def calib_emet(progress_callback):
 
     for j in range(n):
         Vj=[[],[]]
-        Vj[0] = [MRNmes[2][0]*Pt_calib_recep_pixel[0][j]-MRNmes[0][0], MRNmes[2][1]*Pt_calib_recep_pixel[0][j]-MRNmes[0][1]]
-        Vj[1] = [MRNmes[2][0]*Pt_calib_recep_pixel[1][j]-MRNmes[1][0], MRNmes[2][1]*Pt_calib_recep_pixel[1][j]-MRNmes[1][1]]
+        Vj[0] = [MRNmes[2][0]*Pt_calib_emet_pixel[0][j]-MRNmes[0][0], MRNmes[2][1]*Pt_calib_emet_pixel[0][j]-MRNmes[0][1]]
+        Vj[1] = [MRNmes[2][0]*Pt_calib_emet_pixel[1][j]-MRNmes[1][0], MRNmes[2][1]*Pt_calib_emet_pixel[1][j]-MRNmes[1][1]]
         Vj=np.array(Vj)
         ##print(Vj)
         Wj=[0,0]
-        Wj[0] = (MRNmes[0][2] - MRNmes[2][2] * Pt_calib_recep_pixel[0][j]) * Pt_calib_recep_pixel[2][j] - MRNmes[2][3] * Pt_calib_recep_pixel[0][j] + MRNmes[0][3]
-        Wj[1] = (MRNmes[1][2] - MRNmes[2][2] * Pt_calib_recep_pixel[1][j]) * Pt_calib_recep_pixel[2][j] - MRNmes[2][3] * Pt_calib_recep_pixel[1][j] + MRNmes[1][3]
+        Wj[0] = (MRNmes[0][2] - MRNmes[2][2] * Pt_calib_emet_pixel[0][j]) * Pt_calib_emet_pixel[2][j] - MRNmes[2][3] * Pt_calib_emet_pixel[0][j] + MRNmes[0][3]
+        Wj[1] = (MRNmes[1][2] - MRNmes[2][2] * Pt_calib_emet_pixel[1][j]) * Pt_calib_emet_pixel[2][j] - MRNmes[2][3] * Pt_calib_emet_pixel[1][j] + MRNmes[1][3]
         Wj=np.array(Wj)
         ##print(Wj)
         Pt_calib_XY.append(np.linalg.inv(Vj) @Wj)
@@ -201,4 +218,11 @@ class callback():
 
 
 if __name__ == '__main__':
+    import os
+    basedir = os.path.dirname(__file__)
+    os.chdir(basedir)
+    os.chdir('..')
+    os.chdir('..')
+    print(os.getcwd())
+    os.chdir('active_files')
     calib_emet(callback())
