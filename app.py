@@ -18,6 +18,8 @@ import threading
 import time
 from numpy import loadtxt
 import numpy as np
+from numpy import savetxt
+
 
 from matplotlib.backends.backend_qtagg import FigureCanvas
 from matplotlib.backends.backend_qtagg import \
@@ -188,20 +190,45 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         qr = screen.geometry()
         self.w.move(qr.left(), qr.top())
         self.w.showFullScreen()
-        self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.bmp")
+        self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.jpg")
+        self.add_image_to_tab(self.resultTabWidget_3,"recep_z0.jpg")
+        self.add_image_to_tab(self.resultTabWidget_3,"recep_zN.jpg")
+        self.add_image_to_tab(self.resultTabWidget_3,"emet_z0.jpg")
+        self.add_image_to_tab(self.resultTabWidget_3,"emet_zN.jpg")
+
+
     
         self.EXPOSURE = 0
         self.SATURATION = 100
         self.CONTRAST = 100
 
-        self.clicked_points = [] 
+        self.clicked_points = {1:[],2:[],3:[],4:[],5:[]} 
+        self.emet_z0_reset_button.clicked.connect(lambda: (self.clicked_points[2].clear(), 
+                              self.update_calibration_nb_point_label(2)))
+        self.emet_zN_reset_button.clicked.connect(lambda: (self.clicked_points[3].clear(), 
+                              self.update_calibration_nb_point_label(3)))
+        self.recep_z0_reset_button.clicked.connect(lambda: (self.clicked_points[4].clear(), 
+                              self.update_calibration_nb_point_label(4)))
+        self.recep_zN_reset_button.clicked.connect(lambda: (self.clicked_points[5].clear(), 
+                              self.update_calibration_nb_point_label(5)))
+        self.emet_z0_controlz_button.clicked.connect(lambda: (self.clicked_points[2].pop(), 
+                              self.update_calibration_nb_point_label(2)))
+        self.emet_zN_controlz_button.clicked.connect(lambda: (self.clicked_points[3].pop(), 
+                              self.update_calibration_nb_point_label(3)))
+        self.recep_z0_controlz_button.clicked.connect(lambda: (self.clicked_points[4].pop(), 
+                              self.update_calibration_nb_point_label(4)))
+        self.recep_zN_controlz_button.clicked.connect(lambda: (self.clicked_points[5].pop(), 
+                              self.update_calibration_nb_point_label(5)))
+
+        self.emet_calib_nb_points = 9
+        self.recep_calib_nb_points = 12
 
         self.save_img_button.clicked.connect(self.save_file_dialog)
 
     def save_file_dialog(self):
         current_tab = self.tabWidget.currentIndex()
         if current_tab == 0:
-            sb_tab = self.resultTabWidget_3.currentIndex()
+            sb_tab = i
             file_to_save = self.tab_dict[self.resultTabWidget_3].imagelabels[sb_tab].pixmap()
             file_name = self.resultTabWidget_3.tabText(sb_tab)
         else:
@@ -254,19 +281,57 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
     def mousePressEvent(self, event):
         x, y = self.get_photo_x_y()
-        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
+        i = self.resultTabWidget_3.currentIndex()
+        if i <= 5 and self.tabWidget.currentIndex() == 0:
             if x >= 0 and y >= 0 and x < 1280 and y < 720:
-                self.clicked_points.append((x, y))
+                will_add =True 
+                if i == 2 or i == 3:
+                    if len(self.clicked_points[i]) >= self.emet_calib_nb_points:
+                        will_add = False
+                if i == 4 or i == 5:
+                    if len(self.clicked_points[i]) >= self.recep_calib_nb_points:
+                        will_add = False
+                if will_add:
+                    self.clicked_points[i].append((int(x), int(y)))
+                    self.update_calibration_nb_point_label(i)
+                if len(self.clicked_points[i]) == self.emet_calib_nb_points :
+                    if i == 2:
+                        data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
+                        savetxt('emet_z0_points.txt', data, fmt='%d')
+                    elif i == 3:
+                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_emet_spinbox.value()))))
+                        savetxt('emet_zN_points.txt', data, fmt='%d')
+                    elif i == 4:
+                        data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
+                        savetxt('recep_z0_points.txt', data, fmt='%d')
+                    elif i == 5:
+                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_recep_spinbox.value()))))
+                        savetxt('recep_zN_points.txt', data, fmt='%d')
+
                 print("clicked", x, y)
+
+    def update_calibration_nb_point_label(self,i):
+        if i == 2:
+            label = self.emet_z0_nb_point_label
+        elif i == 3:
+            label = self.emet_zN_nb_point_label
+        elif i == 4:
+            label = self.recep_z0_nb_point_label
+        elif i == 5:
+            label = self.recep_zN_nb_point_label
+        if i == 2 or i == 3:
+            label.setText(str(len(self.clicked_points[i])) + "/" + str(self.emet_calib_nb_points)+" points")
+        else:
+            label.setText(str(len(self.clicked_points[i])) + "/" + str(self.recep_calib_nb_points)+" points")
     def update_camera(self):
         x,y = self.get_photo_x_y()
         #print("update_camera",self.capturing,self.capture)
-        if self.resultTabWidget_3.currentIndex() == 1 and self.tabWidget.currentIndex() == 0:
+        i = self.resultTabWidget_3.currentIndex()
+        if i == 1 and self.tabWidget.currentIndex() == 0:
             self.startcapture()
             ret, frame = self.capture.read()
             if ret:
-                for points in self.clicked_points:
-                    cv2.circle(frame, points, 5, (0, 0, 255), -1)
+
 
                 self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
                 if self.mire_recep_check.isChecked():            
@@ -275,26 +340,44 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                     cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2) 
                     self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
                     #cv2.imshow('frame', frame)
-                if x >= 0 and y >= 0 and x < 1280 and y < 720:
-                    zoom = frame[max(0, y-25):min(frame.shape[0], y+25), max(0, x-25):min(frame.shape[1], x+25)]
-                    if zoom.shape[0] < 50 or zoom.shape[1] < 50:
-                        zoom = cv2.copyMakeBorder(zoom, 
-                                                  top=max(0, 25 - y), 
-                                                  bottom=max(0, y + 25 - frame.shape[0]), 
-                                                  left=max(0, 25 - x), 
-                                                  right=max(0, x + 25 - frame.shape[1]), 
-                                                  borderType=cv2.BORDER_CONSTANT, 
-                                                  value=[0, 0, 0])
-                    cross_size = 5
-                    cross_color = (250, 250, 250)  # Green color
-                    center_x, center_y = 25, 25  # Center of the zoomed area
-                    cv2.line(zoom, (center_x - cross_size, center_y), (center_x + cross_size, center_y), cross_color, 1)
-                    cv2.line(zoom, (center_x, center_y - cross_size), (center_x, center_y + cross_size), cross_color, 1)
-                    zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
 
-                    zoom_qimage = QImage(zoom.data, zoom.shape[1], zoom.shape[0], zoom.strides[0], QImage.Format_RGB888).rgbSwapped()
-                    self.label_zoom.setPixmap(QPixmap.fromImage(zoom_qimage))
-                    self.label_zoom.setScaledContents(True)
+        if i <= 5 and self.tabWidget.currentIndex() == 0:
+            
+            i = i
+            if i==0:
+                frame_bis = frame
+            else:
+                frame_bis = cv2.imread(self.resultTabWidget_3.tabText(i))
+
+            for point in self.clicked_points[i]:
+                    cv2.circle(frame_bis,point, 5, (0, 0, 255), -1)
+            
+            self.tab_dict[self.resultTabWidget_3].imagelabels[i].setPixmap(QPixmap.fromImage(QImage(frame_bis.data, frame_bis.shape[1], frame_bis.shape[0], frame_bis.strides[0], QImage.Format_RGB888).rgbSwapped()))
+
+            if x >= 0 and y >= 0 and x < 1280 and y < 720:
+                if i == 1:
+                    frame =frame
+                else:
+                    frame = cv2.imread(self.resultTabWidget_3.tabText(i))
+                zoom = frame[max(0, y-25):min(frame.shape[0], y+25), max(0, x-25):min(frame.shape[1], x+25)]
+                if zoom.shape[0] < 50 or zoom.shape[1] < 50:
+                    zoom = cv2.copyMakeBorder(zoom, 
+                                                top=max(0, 25 - y), 
+                                                bottom=max(0, y + 25 - frame.shape[0]), 
+                                                left=max(0, 25 - x), 
+                                                right=max(0, x + 25 - frame.shape[1]), 
+                                                borderType=cv2.BORDER_CONSTANT, 
+                                                value=[0, 0, 0])
+                cross_size = 5
+                cross_color = (250, 250, 250)  # Green color
+                center_x, center_y = 25, 25  # Center of the zoomed area
+                cv2.line(zoom, (center_x - cross_size, center_y), (center_x + cross_size, center_y), cross_color, 1)
+                cv2.line(zoom, (center_x, center_y - cross_size), (center_x, center_y + cross_size), cross_color, 1)
+                zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
+
+                zoom_qimage = QImage(zoom.data, zoom.shape[1], zoom.shape[0], zoom.strides[0], QImage.Format_RGB888).rgbSwapped()
+                self.label_zoom.setPixmap(QPixmap.fromImage(zoom_qimage))
+                self.label_zoom.setScaledContents(True)
                     
 
         else :
@@ -334,7 +417,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.tab_dict[tab].imagetabs[numerotab]= QWidget()
         self.tab_dict[tab].imagetabs[numerotab].setObjectName(u"tab_4")
         tab.addTab(self.tab_dict[tab].imagetabs[numerotab], "")
-        self.resultTabWidget.setTabText(numerotab, QCoreApplication.translate("Imageur3D", image_path, None))
+        tab.setTabText(numerotab, QCoreApplication.translate("Imageur3D", image_path, None))
         self.tab_dict[tab].imagelabels[numerotab] = QLabel(self.tab_dict[tab].imagetabs[numerotab])
         self.tab_dict[tab].imagelabels[numerotab].setObjectName(image_path)
         self.tab_dict[tab].imagelabels[numerotab].setGeometry(QRect(0, 0, 1280, 720))

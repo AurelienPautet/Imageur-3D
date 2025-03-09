@@ -59,14 +59,14 @@
      <widget class="QLabel" name="label_8">
       <property name="geometry">
        <rect>
-        <x>1340</x>
+        <x>1330</x>
         <y>330</y>
-        <width>271</width>
+        <width>571</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Informations&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Calibration&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QTabWidget" name="resultTabWidget_3">
@@ -113,45 +113,17 @@
       <property name="geometry">
        <rect>
         <x>1330</x>
-        <y>360</y>
-        <width>291</width>
-        <height>321</height>
+        <y>320</y>
+        <width>571</width>
+        <height>251</height>
        </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="calibEmetteurButton">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>810</y>
-        <width>113</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Calibrer 
- l'émetteur</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="calibReceptButton">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>810</y>
-        <width>113</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Calibrer le 
- récepteur</string>
       </property>
      </widget>
      <widget class="QCheckBox" name="mire_emet_check">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>780</y>
+        <x>1460</x>
+        <y>360</y>
         <width>101</width>
         <height>20</height>
        </rect>
@@ -163,8 +135,8 @@
      <widget class="QCheckBox" name="mire_recep_check">
       <property name="geometry">
        <rect>
-        <x>160</x>
-        <y>780</y>
+        <x>1660</x>
+        <y>360</y>
         <width>121</width>
         <height>20</height>
        </rect>
@@ -407,6 +379,363 @@
        <string>Afficher franges</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="emet_zN_photo_button">
+      <property name="geometry">
+       <rect>
+        <x>1530</x>
+        <y>430</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PHOTO</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>1340</x>
+        <y>420</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RECEPTEUR</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="emet_z0_photo_button">
+      <property name="geometry">
+       <rect>
+        <x>1530</x>
+        <y>400</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PHOTO</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>1410</x>
+        <y>400</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Z=0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>1410</x>
+        <y>430</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Z=</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="z_emet_spinbox">
+      <property name="geometry">
+       <rect>
+        <x>1430</x>
+        <y>430</y>
+        <width>42</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="emet_z0_nb_point_label">
+      <property name="geometry">
+       <rect>
+        <x>1610</x>
+        <y>400</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0/9 POINTS</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="emet_zN_nb_point_label">
+      <property name="geometry">
+       <rect>
+        <x>1610</x>
+        <y>430</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0/9 POINTS</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="emet_z0_reset_button">
+      <property name="geometry">
+       <rect>
+        <x>1790</x>
+        <y>400</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RESET</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="emet_zN_reset_button">
+      <property name="geometry">
+       <rect>
+        <x>1790</x>
+        <y>430</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RESET</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="emet_zN_controlz_button">
+      <property name="geometry">
+       <rect>
+        <x>1710</x>
+        <y>430</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>control Z</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="emet_z0_controlz_button">
+      <property name="geometry">
+       <rect>
+        <x>1710</x>
+        <y>400</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>control Z</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="z_recep_spinbox">
+      <property name="geometry">
+       <rect>
+        <x>1430</x>
+        <y>520</y>
+        <width>42</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_z0_photo_button">
+      <property name="geometry">
+       <rect>
+        <x>1530</x>
+        <y>490</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PHOTO</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>1410</x>
+        <y>490</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Z=0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="recep_zN_nb_point_label">
+      <property name="geometry">
+       <rect>
+        <x>1610</x>
+        <y>520</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0/9 POINTS</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="recep_z0_nb_point_label">
+      <property name="geometry">
+       <rect>
+        <x>1610</x>
+        <y>490</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0/9 POINTS</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_zN_reset_button">
+      <property name="geometry">
+       <rect>
+        <x>1790</x>
+        <y>520</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RESET</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_z0_controlz_button">
+      <property name="geometry">
+       <rect>
+        <x>1710</x>
+        <y>490</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>control Z</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>1410</x>
+        <y>520</y>
+        <width>16</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Z=</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_zN_controlz_button">
+      <property name="geometry">
+       <rect>
+        <x>1710</x>
+        <y>520</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>control Z</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_z0_reset_button">
+      <property name="geometry">
+       <rect>
+        <x>1790</x>
+        <y>490</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RESET</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>1340</x>
+        <y>510</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>EMETEUR</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="recep_zN_photo_button">
+      <property name="geometry">
+       <rect>
+        <x>1530</x>
+        <y>520</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PHOTO</string>
+      </property>
+     </widget>
+     <zorder>TroisDButton_3</zorder>
+     <zorder>resultTabWidget_3</zorder>
+     <zorder>informationList_3</zorder>
+     <zorder>mire_emet_check</zorder>
+     <zorder>mire_recep_check</zorder>
+     <zorder>label_cont</zorder>
+     <zorder>label_sat</zorder>
+     <zorder>label_exp</zorder>
+     <zorder>slider_exp</zorder>
+     <zorder>slider_sat</zorder>
+     <zorder>label_val_exp</zorder>
+     <zorder>slider_cont</zorder>
+     <zorder>label_val_sat</zorder>
+     <zorder>label_val_cont</zorder>
+     <zorder>label_zoom</zorder>
+     <zorder>number_of_franges</zorder>
+     <zorder>label</zorder>
+     <zorder>take_picutres_button</zorder>
+     <zorder>generate_frange_button</zorder>
+     <zorder>afficher_frange_checkbox</zorder>
+     <zorder>label_8</zorder>
+     <zorder>emet_zN_photo_button</zorder>
+     <zorder>label_3</zorder>
+     <zorder>emet_z0_photo_button</zorder>
+     <zorder>label_4</zorder>
+     <zorder>label_5</zorder>
+     <zorder>z_emet_spinbox</zorder>
+     <zorder>emet_z0_nb_point_label</zorder>
+     <zorder>emet_zN_nb_point_label</zorder>
+     <zorder>emet_z0_reset_button</zorder>
+     <zorder>emet_zN_reset_button</zorder>
+     <zorder>emet_zN_controlz_button</zorder>
+     <zorder>emet_z0_controlz_button</zorder>
+     <zorder>z_recep_spinbox</zorder>
+     <zorder>recep_z0_photo_button</zorder>
+     <zorder>label_6</zorder>
+     <zorder>recep_zN_nb_point_label</zorder>
+     <zorder>recep_z0_nb_point_label</zorder>
+     <zorder>recep_zN_reset_button</zorder>
+     <zorder>recep_z0_controlz_button</zorder>
+     <zorder>label_10</zorder>
+     <zorder>recep_zN_controlz_button</zorder>
+     <zorder>recep_z0_reset_button</zorder>
+     <zorder>label_11</zorder>
+     <zorder>recep_zN_photo_button</zorder>
     </widget>
     <widget class="QWidget" name="simulationTab">
      <attribute name="title">
