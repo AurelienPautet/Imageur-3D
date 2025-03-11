@@ -175,7 +175,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.slider_sat.valueChanged.connect(self.slider_sat_changed)
         self.slider_cont.valueChanged.connect(self.slider_cont_changed)
 
-        self.resultTabWidget_3.mousePressEvent = self.mousePressEvent
+        self.tabWidget.mousePressEvent = self.mousePressEvent
         self.generate_frange_button.clicked.connect(lambda: self.genrere_franges(show=False, N=self.number_of_franges.value()))
         self.threadpool = QThreadPool()
 
@@ -273,7 +273,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
     def startcapture(self):
         if not self.capturing:
-            self.capture = cv2.VideoCapture(0)
+            self.capture = cv2.VideoCapture(1)
             self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
@@ -297,8 +297,12 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         pos = cursor.pos()
         x = pos.x()
         y = pos.y()
-        x = x - self.resultTabWidget_3.x() - self.tabWidget.x() -3
-        y = y - self.resultTabWidget_3.y() - self.tabWidget.y() -31*2 -3
+        x = x - self.resultTabWidget_3.x() 
+        y = y - self.resultTabWidget_3.y() 
+        x = int(x * 1920 / 1280)
+        y = int(y * 1080 / 720)
+        x = x - self.tabWidget.x() -3
+        y = y - self.tabWidget.y()  -31*2 -33
         return x, y
 
     def mousePressEvent(self, event):
@@ -357,7 +361,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         #print("update_camera",self.capturing,self.capture)
         i = self.resultTabWidget_3.currentIndex()
         if i == 1 and self.tabWidget.currentIndex() == 0:
-            print("update_camera")
             self.startcapture()
             ret, frame = self.capture.read()
             if ret:
@@ -381,7 +384,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             
             self.tab_dict[self.resultTabWidget_3].imagelabels[i].setPixmap(QPixmap.fromImage(QImage(frame_bis.data, frame_bis.shape[1], frame_bis.shape[0], frame_bis.strides[0], QImage.Format_RGB888).rgbSwapped()))
 
-            if x >= 0 and y >= 0 and x < 1280 and y < 720:
+            if x >= 0 and y >= 0 and x < 1920 and y < 1080:
                 frame = frame_bis
                 zoom = frame[max(0, y-25):min(frame.shape[0], y+25), max(0, x-25):min(frame.shape[1], x+25)]
                 if zoom.shape[0] < 50 or zoom.shape[1] < 50:
