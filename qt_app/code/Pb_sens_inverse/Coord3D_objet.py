@@ -15,8 +15,8 @@ def genere_coord3D(progress_callback):
    PosiGauche = loadtxt('PosiGauche.txt')
    PosiGlobal = loadtxt('Posiglobal.txt')
 
-   ME = loadtxt('ME.txt')
-   MR = loadtxt('MR.txt')
+   ME = loadtxt('MEmes.txt')
+   MR = loadtxt('MRmes.txt')
    NBHE = loadtxt('NbHE.txt')
    N = loadtxt('N.txt')
 
@@ -72,8 +72,8 @@ def genere_coord3D(progress_callback):
    Z = np.array(Z)
 
                # Determine the dimensions of the 2D matrix
-   max_x = int(np.max(X)) + 1
-   max_y = int(np.max(Y)) + 1
+   max_x = int(np.ceil(np.max(X))) + 1
+   max_y = int(np.ceil(np.max(Y))) + 1
 
    progress_callback.emit(50)
                # Save the 2D matrix to a file
@@ -81,62 +81,66 @@ def genere_coord3D(progress_callback):
    fig = plt.figure()
    ax = fig.add_subplot(111, projection='3d')
    ax.scatter(X, Y, Z, s=0.5)
+   ax.set_xlabel('X')
+   ax.set_ylabel('Y')
+   ax.set_zlabel('Z')
+   ax.set_zlim(0, np.max(Z))
    savetxt('X_scan.txt', X, fmt='%-7.6f')
    savetxt('Y_scan.txt', Y, fmt='%-7.6f')
    savetxt('Z_scan.txt', Z)
    print(Z)
    #plt.show()
+   if True: 
+      X = []
+      Y = []
+      Z = []
 
-   X = []
-   Y = []
-   Z = []
+      for i in range(len(PosiGlobal)):
+         z_def = -10  # on fixe la valeur de z
+         for e in range(len(PosiGlobal[0])):
+            if PosiGlobal[i,e] !=0:
+               ur = i
+               vr = e
+               ve = (NBHE/(2**N))*PosiGlobal[i,e]+1
+               G=[[MR[2,0]*ur -MR[0,0] , MR[2,1]*ur - MR[0,1],MR[2,2]*ur - MR[0,2]],
+                  [MR[2,0]*vr -MR[1,0] , MR[2,1]*vr - MR[1,1],MR[2,2]*vr - MR[1,2]],
+                  [ME[2,0]*ve -ME[1,0] , ME[2,1]*ve - ME[1,1],ME[2,2]*ve - ME[1,2]]]
+               H=[[MR[0,3]-MR[2,3]*ur],
+                  [MR[1,3]-MR[2,3]*vr],
+                  [ME[1,3]-ME[2,3]*ve]]
+               inv_G = np.linalg.inv(G)
+               (x,y,z) = np.matmul(inv_G,H) 
+               z_def = z.item()
+            X.append(e)
+            Y.append(i)
+            Z.append(z_def)
+   # Création de la grille X2, Y2
+      unique_X = np.unique(X)
+      unique_Y = np.unique(Y)
+      X2, Y2 = np.meshgrid(unique_X, unique_Y)
 
-   for i in range(len(PosiGlobal)):
-      z_def = -10  # on fixe la valeur de z
-      for e in range(len(PosiGlobal[0])):
-         if PosiGlobal[i,e] !=0:
-            ur = i
-            vr = e
-            ve = (NBHE/(2**N))*PosiGlobal[i,e]+1
-            G=[[MR[2,0]*ur -MR[0,0] , MR[2,1]*ur - MR[0,1],MR[2,2]*ur - MR[0,2]],
-               [MR[2,0]*vr -MR[1,0] , MR[2,1]*vr - MR[1,1],MR[2,2]*vr - MR[1,2]],
-               [ME[2,0]*ve -ME[1,0] , ME[2,1]*ve - ME[1,1],ME[2,2]*ve - ME[1,2]]]
-            H=[[MR[0,3]-MR[2,3]*ur],
-               [MR[1,3]-MR[2,3]*vr],
-               [ME[1,3]-ME[2,3]*ve]]
-            inv_G = np.linalg.inv(G)
-            (x,y,z) = np.matmul(inv_G,H) 
-            z_def = z.item()
-         X.append(e)
-         Y.append(i)
-         Z.append(z_def)
-# Création de la grille X2, Y2
-   unique_X = np.unique(X)
-   unique_Y = np.unique(Y)
-   X2, Y2 = np.meshgrid(unique_X, unique_Y)
+      # Interpolation des valeurs de Z sur la grille X2, Y2
+      # Remove NaN values from X, Y, Z
+      mask = ~np.isnan(Z)
+      X = np.array(X)[mask]
+      Y = np.array(Y)[mask]
+      Z = np.array(Z)[mask]
 
-   # Interpolation des valeurs de Z sur la grille X2, Y2
-   # Remove NaN values from X, Y, Z
-   mask = ~np.isnan(Z)
-   X = np.array(X)[mask]
-   Y = np.array(Y)[mask]
-   Z = np.array(Z)[mask]
+      Z2 = griddata((X, Y), Z, (X2, Y2), method='linear')
+      print("on en est la ")
 
-   Z2 = griddata((X, Y), Z, (X2, Y2), method='linear')
-   print("on en est la ")
+      #Enregistrement des coordonnées matricelles objet
+      savetxt('X2.txt', X2, fmt='%-7.6f')   
+      savetxt('Y2.txt', Y2, fmt='%-7.6f')
+      savetxt('Z2.txt', Z2, fmt='%-7.6f')  
 
-   #Enregistrement des coordonnées matricelles objet
-   savetxt('X2.txt', X2, fmt='%-7.6f')   
-   savetxt('Y2.txt', Y2, fmt='%-7.6f')
-   savetxt('Z2.txt', Z2, fmt='%-7.6f')  
-
-   # Affichage du résultat avec colorbar
-   plt.figure()
-   plt.pcolor(X2, Y2, Z2, cmap='gray', vmin=-10, vmax=np.nanmax(Z2))
-   plt.title('Z (mm) - Objet bouclier simulé')
-   plt.axis([X2.min(), X2.max(), Y2.min(), Y2.max()])
-   plt.colorbar()
-   plt.savefig("Nuances.png")
+      # Affichage du résultat avec colorbar
+      plt.figure()
+      plt.pcolor(X2, Y2, Z2, cmap='gray', vmin=-10, vmax=np.nanmax(Z2))
+      plt.title('Z (mm) - Objet bouclier simulé')
+      plt.axis([X2.min(), X2.max(), Y2.min(), Y2.max()])
+      plt.colorbar()
+      plt.savefig("Nuances.png")
    progress_callback.emit(100)
 
 class callback():
@@ -146,4 +150,11 @@ class callback():
          plt.show()
 
 if __name__ == '__main__':
+   import os
+   basedir = os.path.dirname(__file__)
+   os.chdir(basedir)
+   os.chdir('..')
+   os.chdir('..')
+   print(os.getcwd())
+   os.chdir('active_files')
    genere_coord3D( callback())

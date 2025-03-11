@@ -3,9 +3,9 @@ import numpy as np
 import scipy.optimize
 
 
-def calib_recep(callback):
+def calib_recep(progress_callback):
 
-    callback.emit(0)
+    progress_callback.emit(0)
     ## Calcul de MRNmes
     #------------------------------
     #------------------------------
@@ -63,8 +63,6 @@ def calib_recep(callback):
         pX
     ])
 
-    print("Pt_calib:", Pt_calib)
-    print("Pt_aqui_pixel:", Pt_aqui_pixel)
     Pt_aqui_mm = Pt_aqui_pixel
 
 
@@ -191,7 +189,7 @@ def calib_recep(callback):
 
     end_time = time.process_time()  # fin mesure temps d'exéc
     print(f"Temps d'exécution: {end_time - start_time} secondes")
-    callback.emit(100)
+    progress_callback.emit(100)
 
 class callback():
    def emit(self, value):

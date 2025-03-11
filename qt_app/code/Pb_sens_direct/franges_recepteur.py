@@ -150,7 +150,7 @@ def faire_franges_recepteur(progress_callback):
     del sRuR1, sRvR1, sR, X, Y, Z   
     for k in range (N):
         #------ Chargement des images d'intensité I de l'objet ---
-        Nom='I' + str(k+1) + '.bmp'    
+        Nom='capture' + str(k+1) + '.bmp'    
         ima = io.imread(Nom)
         
         #Calcul de l'inage de réception IR
@@ -188,3 +188,19 @@ def faire_franges_recepteur(progress_callback):
         del IR, IRzoom, r, g, b
     progress_callback.emit(100)
     print(time.process_time() - start_time, "seconds")  # fin mesure temps d'éxecusion
+
+
+class callback():
+   def emit(self, value):
+      print(value)
+
+
+if __name__ == '__main__':
+    import os
+    basedir = os.path.dirname(__file__)
+    os.chdir(basedir)
+    os.chdir('..')
+    os.chdir('..')
+    print(os.getcwd())
+    os.chdir('active_files')
+    faire_franges_recepteur(callback())

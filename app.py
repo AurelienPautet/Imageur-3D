@@ -131,6 +131,10 @@ class AnotherWindow(QWidget):
                 print(self.currentTram)
                 self.photo_taken += 1
 
+        if window.cadri_emet_check.isChecked():
+            self.label.setPixmap(QPixmap("Mire_damier.bmp"))
+
+
         if window.mire_emet_check.isChecked():
             window.afficher_frange_checkbox.setChecked(False)
             NbHE = 1280  # sur horizontal
@@ -309,7 +313,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         x, y = self.get_photo_x_y()
         i = self.resultTabWidget_3.currentIndex()
         if i <= 5 and self.tabWidget.currentIndex() == 0:
-            if x >= 0 and y >= 0 and x < 1280 and y < 720:
+            if x >= 0 and y >= 0 and x < 1920 and y < 1080:
                 will_add =True 
                 if i == 2 or i == 3:
                     if len(self.clicked_points[i]) >= self.recep_calib_nb_points:
@@ -325,20 +329,22 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                     if i == 2:
                         data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
                         savetxt('recep_z0_points.txt', data, fmt='%d')  
+                        self.calibration_recepteur()
                     elif i == 3:
-                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_emet_spinbox.value()))))
+                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_recep_spinbox.value()))))
                         savetxt('recep_zN_points.txt', data, fmt='%d')
-                    self.calibration_recepteur()
+                        self.calibration_recepteur()
 
                 if len(self.clicked_points[i]) == self.emet_calib_nb_points :  
                     if i == 4:
                         data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
                         savetxt('emet_z0_points.txt', data, fmt='%d')
-                        
+                        self.calibration_emeteur()
+
                     elif i == 5:
-                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_recep_spinbox.value()))))
+                        data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_emet_spinbox.value()))))
                         savetxt('emet_zN_points.txt', data, fmt='%d')
-                    self.calibration_recepteur()
+                        self.calibration_emeteur()
                 print("clicked", x, y)
 
      
@@ -361,7 +367,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         #print("update_camera",self.capturing,self.capture)
         i = self.resultTabWidget_3.currentIndex()
         if i == 1 and self.tabWidget.currentIndex() == 0:
-            self.startcapture()
+            self.startcapture() 
             ret, frame = self.capture.read()
             if ret:
                 if self.mire_recep_check.isChecked():            

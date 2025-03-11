@@ -444,7 +444,7 @@
        <string>Z=</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="jg">
+     <widget class="QSpinBox" name="z_emet_spinbox">
       <property name="geometry">
        <rect>
         <x>1430</x>
@@ -697,6 +697,19 @@
        <string>PHOTO</string>
       </property>
      </widget>
+     <widget class="QCheckBox" name="cadri_emet_check">
+      <property name="geometry">
+       <rect>
+        <x>1760</x>
+        <y>360</y>
+        <width>101</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>CADRILLAGE</string>
+      </property>
+     </widget>
      <zorder>TroisDButton_3</zorder>
      <zorder>resultTabWidget_3</zorder>
      <zorder>informationList_3</zorder>
@@ -723,7 +736,7 @@
      <zorder>emet_z0_photo_button</zorder>
      <zorder>label_4</zorder>
      <zorder>label_5</zorder>
-     <zorder>jg</zorder>
+     <zorder>z_emet_spinbox</zorder>
      <zorder>emet_z0_nb_point_label</zorder>
      <zorder>emet_zN_nb_point_label</zorder>
      <zorder>emet_z0_reset_button</zorder>
@@ -742,6 +755,7 @@
      <zorder>recep_z0_reset_button</zorder>
      <zorder>label_11</zorder>
      <zorder>recep_zN_photo_button</zorder>
+     <zorder>cadri_emet_check</zorder>
     </widget>
     <widget class="QWidget" name="simulationTab">
      <attribute name="title">

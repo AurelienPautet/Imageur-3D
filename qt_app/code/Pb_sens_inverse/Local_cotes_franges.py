@@ -41,7 +41,7 @@ def localisation_cotes_franges(progress_callback,exp):
     PosiDroite = zeros((NbHRzoom,NbVRzoom))
 
     # Seuillage de l'image
-    threshold = 230
+    threshold = 150
     # chargement de l'image puis binarisation 
     for k in range (N):
 
@@ -54,7 +54,7 @@ def localisation_cotes_franges(progress_callback,exp):
             Nom = f'capture{str(k + 1)}.bmp'
         # Resize the image to 1080x1500
         img = io.imread(Nom)
-        img = img[:1080, :1500]
+        img = img[:1080, 240:1740]
 
         img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
@@ -185,4 +185,11 @@ class callback():
 
 
 if __name__ == '__main__':
-    localisation_cotes_franges(callback())
+    import os
+    basedir = os.path.dirname(__file__)
+    os.chdir(basedir)
+    os.chdir('..')
+    os.chdir('..')
+    print(os.getcwd())
+    os.chdir('active_files')
+    localisation_cotes_franges(callback(), "scan")
