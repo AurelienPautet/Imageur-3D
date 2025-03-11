@@ -44,6 +44,9 @@ from Trames_binaires import faire_franges
 sys.path.insert(0,  os.path.join(basedir,'qt_app/code/Pb_sens_inverse'))
 from Local_cotes_franges import localisation_cotes_franges
 from Coord3D_objet import genere_coord3D
+sys.path.insert(0,  os.path.join(basedir,'qt_app/code/Calibration'))
+from Calib_emetteur import calib_emet
+from Calib_recepteur import calib_recep
 sys.path.insert(0, basedir)
 os.chdir(os.path.join(basedir, 'qt_app/active_files'))
 
@@ -116,13 +119,17 @@ class AnotherWindow(QWidget):
         layout.addWidget(self.label)
         self.setLayout(layout)
         self.currentTram = 1;
+        self.photo_taken = -1;
 
     def new_trame(self):
-        if False:
+        N = loadtxt('N.txt', np.int32)
+        if  self.photo_taken != -1 and self.photo_taken < N:
             window.startcapture()
             ret, frame = window.capture.read()
             if ret:
                 cv2.imwrite(f"capture{self.currentTram}.bmp", frame)
+                print(self.currentTram)
+                self.photo_taken += 1
 
         if window.mire_emet_check.isChecked():
             window.afficher_frange_checkbox.setChecked(False)
@@ -137,7 +144,7 @@ class AnotherWindow(QWidget):
 
         if window.afficher_frange_checkbox.isChecked():
             self.currentTram += 1
-            if self.currentTram > loadtxt('N.txt', np.int32):
+            if self.currentTram > N:
                 self.currentTram = 1
             self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
 
@@ -230,6 +237,8 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
 
         self.save_img_button.clicked.connect(self.save_file_dialog)
+        self.take_picutres_button.clicked.connect(lambda: (setattr(self.w, 'photo_taken', 0),self.afficher_frange_checkbox.setChecked(True)))
+        self.TroisDButton_3.clicked.connect(self.genere_cotes_franges)
 
     def take_picture(self,path):
         self.startcapture()
@@ -306,24 +315,29 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                         will_add = False
                 if will_add:
                     self.clicked_points[i].append((int(x), int(y)))
-                    if i!=0:
+                    if i!=1:
                         self.update_calibration_nb_point_label(i)
                 if len(self.clicked_points[i]) == self.recep_calib_nb_points :
                     if i == 2:
                         data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
-                        savetxt('recep_z0_points.txt', data, fmt='%d')
+                        savetxt('recep_z0_points.txt', data, fmt='%d')  
                     elif i == 3:
                         data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_emet_spinbox.value()))))
                         savetxt('recep_zN_points.txt', data, fmt='%d')
+                    self.calibration_recepteur()
+
                 if len(self.clicked_points[i]) == self.emet_calib_nb_points :  
                     if i == 4:
                         data = np.column_stack((self.clicked_points[i], np.zeros(len(self.clicked_points[i]))))
                         savetxt('emet_z0_points.txt', data, fmt='%d')
+                        
                     elif i == 5:
                         data = np.column_stack((self.clicked_points[i], np.full(len(self.clicked_points[i]), int(self.z_recep_spinbox.value()))))
                         savetxt('emet_zN_points.txt', data, fmt='%d')
-
+                    self.calibration_recepteur()
                 print("clicked", x, y)
+
+     
 
     def update_calibration_nb_point_label(self,i):
         if i == 4:
@@ -343,21 +357,21 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         #print("update_camera",self.capturing,self.capture)
         i = self.resultTabWidget_3.currentIndex()
         if i == 1 and self.tabWidget.currentIndex() == 0:
+            print("update_camera")
             self.startcapture()
             ret, frame = self.capture.read()
             if ret:
-
-
-                #self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
                 if self.mire_recep_check.isChecked():            
                     center_x, center_y = frame.shape[1] // 2, frame.shape[0] // 2
                     cv2.line(frame, (center_x, 0), (center_x, frame.shape[0]), (0, 255, 0), 2) 
                     cv2.line(frame, (0, center_y), (frame.shape[1], center_y), (0, 255, 0), 2) 
-                    #self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
                     #cv2.imshow('frame', frame)
+            self.tab_dict[self.resultTabWidget_3].imagelabels[1].setPixmap(QPixmap.fromImage(QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888).rgbSwapped()))
+        else:
+            self.endcapture()
 
         if i <= 5 and self.tabWidget.currentIndex() == 0:
-            if i==0:
+            if i==1:
                 frame_bis = frame
             else:
                 frame_bis = cv2.imread(self.resultTabWidget_3.tabText(i))
@@ -438,6 +452,35 @@ class MyApp(QMainWindow, Ui_Imageur3D):
     def autoButtonClicked(self):
         self.auto = True
         self.generer_objet()
+
+    
+    
+    def calibration_recepteur(self):
+        print("debut d'éxecution de calibration_recepteur")
+        # Pass the function to execute
+        worker = Worker(calib_recep) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.calibration_recepteur_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+
+    def calibration_recepteur_complete(self):
+        print("fin d'exécution de calibration_recepteur")   
+    
+    def calibration_emeteur(self):
+        print("debut d'éxecution de calibration_emeteur")
+        # Pass the function to execute
+        worker = Worker(calib_emet) # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.calibration_emeteur_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        # Execute
+        self.threadpool.start(worker)
+
+    def calibration_emeteur_complete(self):
+        print("fin d'exécution de calibration_emeteur")   
+
 
     def generer_objet(self):
         print("debut d'éxecution de generer_objet")
@@ -539,14 +582,20 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
     def genere_cotes_franges(self):
         print("debut d'éxecution de genere_cotes_franges")
-        worker = Worker(localisation_cotes_franges) 
+        if self.tabWidget.currentIndex() == 0:
+            exp = "scan"
+        else:
+            exp = "simu"
+        print("exp",exp)
+
+        worker = Worker(localisation_cotes_franges,exp = exp) 
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.genere_cotes_franges_complete)
         worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
 
 
-    def genere_cotes_franges_complete(self):
+    def genere_cotes_franges_complete(self,exp):
         print("fin d'éxecution de genere_cotes_franges")
         self.genere_objet_3D()
 

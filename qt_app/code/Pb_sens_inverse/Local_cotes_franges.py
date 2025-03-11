@@ -16,7 +16,7 @@ from skimage.morphology import disk
 import numpy as np
 from numpy import loadtxt, empty, zeros, ones, savetxt
 
-def localisation_cotes_franges(progress_callback):
+def localisation_cotes_franges(progress_callback,exp):
     progress_callback.emit(0)
     start_time = time.process_time() # début mesure temps d'éxecusion
 
@@ -46,8 +46,12 @@ def localisation_cotes_franges(progress_callback):
     for k in range (N):
 
         #------ Chargement des images d'intensité IRZoom de l'objet dans le repere recepteur ---  
-        #Nom = f'IRZoom{str(k + 1)}.bmp'
-        Nom = f'capture{str(k + 1)}.bmp'
+
+        
+        if(exp == "simu"):
+            Nom = f'IRZoom{str(k + 1)}.bmp'
+        else:
+            Nom = f'capture{str(k + 1)}.bmp'
         # Resize the image to 1080x1500
         img = io.imread(Nom)
         img = img[:1080, :1500]
