@@ -118,12 +118,12 @@ class AnotherWindow(QWidget):
         self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
         layout.addWidget(self.label)
         self.setLayout(layout)
-        self.currentTram = 1;
+        self.currentTram = -1;
         self.photo_taken = -1;
 
     def new_trame(self):
         N = loadtxt('N.txt', np.int32)
-        if  self.photo_taken != -1 and self.photo_taken < N:
+        if  self.photo_taken != -1 and self.photo_taken < N + 2 and self.currentTram != -2: 
             window.startcapture()
             ret, frame = window.capture.read()
             if ret:
@@ -148,9 +148,26 @@ class AnotherWindow(QWidget):
 
         if window.afficher_frange_checkbox.isChecked():
             self.currentTram += 1
-            if self.currentTram > N:
-                self.currentTram = 1
-            self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
+            if self.currentTram == -1:
+                black_img = np.zeros((800, 1280, 3), np.uint8)
+                height, width, channel = black_img.shape
+                bytes_per_line = 3 * width
+                q_image = QImage(black_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
+                self.label.setPixmap(QPixmap.fromImage(q_image))
+            if self.currentTram == 0:
+                red_image = np.ones((800, 1280, 3), np.uint8) * 255
+                red_image[:, :, 0] = 255
+                red_image[:, :, 1] = 0
+                red_image[:, :, 2] = 0
+                height, width, channel = red_image.shape
+                bytes_per_line = 3 * width
+                q_image = QImage(red_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+                self.label.setPixmap(QPixmap.fromImage(q_image))
+            if self.currentTram >=1:
+                if self.currentTram > N:
+                    self.currentTram = -2
+                else:
+                    self.label.setPixmap(QPixmap("Trame" + str(self.currentTram) + ".bmp"))
 
         
         
@@ -208,7 +225,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
 
     
-        self.EXPOSURE = 0
+        self.EXPOSURE = -10
         self.SATURATION = 100
         self.CONTRAST = 100
 

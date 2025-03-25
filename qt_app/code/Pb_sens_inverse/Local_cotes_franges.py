@@ -5,6 +5,7 @@ MAJ octobre 2023
 @author: Elisabeth Lys
 """
 # %%
+import re
 import time
 
 # On importe le module matplotlib qui permet de générer des graphiques 2D et 3D
@@ -42,6 +43,18 @@ def localisation_cotes_franges(progress_callback,exp,threshold):
 
     # Seuillage de l'image
     threshold = threshold
+    if(exp == "scan"):
+        red_image = io.imread('capture0.bmp')
+        black_image = io.imread('capture-1.bmp')
+        red_image = red_image[:1080, 0:1500]
+        black_image = black_image[:1080, 0:1500]
+        red_image[:, :, 0] = filters.median(red_image[:, :, 0], disk(5))
+        black_image[:, :, 0] = filters.median(black_image[:, :, 0], disk(5))
+
+    else:
+        red_image = np.zeros((1080,1500,3))
+        red_image[:,:,0] = 255
+        black_image = np.zeros((1080,1500,3))
     # chargement de l'image puis binarisation 
     for k in range (N):
 
@@ -58,25 +71,17 @@ def localisation_cotes_franges(progress_callback,exp,threshold):
 
         img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
-        idx = img[:,:,0] > threshold
+        idx = img[:,:,0] > np.maximum(red_image[:,:,0] - threshold, 100)
         img[idx,0] = 255
         img[idx,1] = 0
         img[idx,2] = 0
-        idx = img[:,:,0] <= threshold
+        idx = img[:,:,0] <= np.maximum(red_image[:,:,0] - threshold,100)
         img[idx,0] = 0
         img[idx,1] = 0
         img[idx,2] = 0
         io.imsave(f'processed_IRZoom_bis{str(k + 1)}.bmp', img)
         img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom_bis_bis{str(k + 1)}.bmp', img)
-        idx = img[:,:,0] > threshold
-        img[idx,0] = 255
-
-        idx = img[:,:,0] <= threshold
-        img[idx,0] = 0
-        img[idx,1] = 0
-        img[idx,2] = 0
-
         IRz = (img/255)
         # On enregistre les IRzoom_1 2 3 ... dans IR_zoom
         #IRz[:,:,0] = filters.median(IRz[:,:,0], disk(5))
@@ -192,4 +197,4 @@ if __name__ == '__main__':
     os.chdir('..')
     print(os.getcwd())
     os.chdir('active_files')
-    localisation_cotes_franges(callback(), "scan",240)
+    localisation_cotes_franges(callback(), "scan",20)
