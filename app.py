@@ -242,8 +242,8 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
         self.save_img_button.clicked.connect(self.save_file_dialog)
         self.take_picutres_button.clicked.connect(lambda: (setattr(self.w, 'photo_taken', 0),self.afficher_frange_checkbox.setChecked(True)))
-        self.TroisDButton_3.clicked.connect(self.genere_cotes_franges)
-
+        self.coord_3D_button.clicked.connect(self.genere_objet_3D)
+        self.cote_franges_button.clicked.connect(self.genere_cotes_franges)
     def take_picture(self,path):
         self.startcapture()
         ret, frame = window.capture.read()
@@ -348,7 +348,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                 print("clicked", x, y)
 
      
-
     def update_calibration_nb_point_label(self,i):
         if i == 4:
             label = self.emet_z0_nb_point_label
@@ -364,7 +363,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
             label.setText(str(len(self.clicked_points[i])) + "/" + str(self.emet_calib_nb_points)+" points")
     def update_camera(self):
         x,y = self.get_photo_x_y()
-        #print("update_camera",self.capturing,self.capture)
         i = self.resultTabWidget_3.currentIndex()
         if i == 1 and self.tabWidget.currentIndex() == 0:
             self.startcapture() 
@@ -569,14 +567,29 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.threadpool.start(worker)
         
     def genere_objet_3D_complete(self):
+        if self.tabWidget.currentIndex() == 0:
+            exp = "scan"
+        else:
+            exp = "simu"
         print("fin d'éxecution de genere_objet_3D")
-        self.add_image_to_tab(self.resultTabWidget,"Nuances.png")
+        if exp == "scan":
+            self.add_image_to_tab(self.resultTabWidget_3,"Nuances.png")
+        else:
+            self.add_image_to_tab(self.resultTabWidget,"Nuances.png")
         self.fig = Figure(figsize=(5, 3))
         static_canvas = FigureCanvas(self.fig)
         self.axes = self.fig.add_subplot(111, projection='3d')
-        self.numberoftabs += 1
-        self.resultTabWidget.addTab(static_canvas, "")
-        self.resultTabWidget.setTabText(self.numberoftabs, QCoreApplication.translate("Imageur3D", "3D OBJECT PLOT", None))
+        if exp == "scan":
+            tab = self.resultTabWidget_3
+        else:
+            tab = self.resultTabWidget
+
+        self.tab_dict[tab].numberoftabs += 1
+        numerotab = self.tab_dict[tab].numberoftabs
+
+        self.tab_dict[tab].imagetabs[numerotab]= static_canvas
+        tab.addTab(static_canvas, "")
+        tab.setTabText(numerotab, QCoreApplication.translate("Imageur3D", "3D OBJECT PLOT", None))
 
         X = loadtxt('X_scan.txt')
         Y = loadtxt('Y_scan.txt')
@@ -593,20 +606,37 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         print("debut d'éxecution de genere_cotes_franges")
         if self.tabWidget.currentIndex() == 0:
             exp = "scan"
+            threshold = self.seuil_spinbox.value()
         else:
             exp = "simu"
+            threshold = 240
         print("exp",exp)
 
-        worker = Worker(localisation_cotes_franges,exp = exp) 
-        worker.signals.result.connect(self.print_output)
+        worker = Worker(localisation_cotes_franges,exp = exp,threshold = threshold) 
         worker.signals.finished.connect(self.genere_cotes_franges_complete)
         worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
 
-
-    def genere_cotes_franges_complete(self,exp):
+    def helps(self):
+        print("help")
+    def genere_cotes_franges_complete(self):
+        if self.tabWidget.currentIndex() == 0:
+            exp = "scan"
+        else:
+            exp = "simu"
         print("fin d'éxecution de genere_cotes_franges")
-        self.genere_objet_3D()
+        N = loadtxt("N.txt")
+        N = int(N)
+        for k in range(N):
+            if exp == "scan":
+                self.add_image_to_tab(self.resultTabWidget_3,f'processed_IRZoom_bis_bis{str(k + 1)}.bmp')
+            else:
+                self.add_image_to_tab(self.resultTabWidget,f'processed_IRZoom_bis_bis{str(k + 1)}.bmp')
+        if exp == "scan":
+            self.add_image_to_tab(self.resultTabWidget_3,"Cotes_franges.bmp")
+        else:
+            self.add_image_to_tab(self.resultTabWidget,"Cotes_franges.bmp")
+            self.genere_objet_3D()
 
 
 if __name__ == "__main__":

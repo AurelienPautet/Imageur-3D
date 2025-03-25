@@ -90,7 +90,7 @@ def genere_coord3D(progress_callback):
    savetxt('Z_scan.txt', Z)
    print(Z)
    #plt.show()
-   if True: 
+   if False: 
       X = []
       Y = []
       Z = []

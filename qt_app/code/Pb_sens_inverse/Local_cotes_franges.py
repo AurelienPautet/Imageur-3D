@@ -16,7 +16,7 @@ from skimage.morphology import disk
 import numpy as np
 from numpy import loadtxt, empty, zeros, ones, savetxt
 
-def localisation_cotes_franges(progress_callback,exp):
+def localisation_cotes_franges(progress_callback,exp,threshold):
     progress_callback.emit(0)
     start_time = time.process_time() # début mesure temps d'éxecusion
 
@@ -41,7 +41,7 @@ def localisation_cotes_franges(progress_callback,exp):
     PosiDroite = zeros((NbHRzoom,NbVRzoom))
 
     # Seuillage de l'image
-    threshold = 150
+    threshold = threshold
     # chargement de l'image puis binarisation 
     for k in range (N):
 
@@ -54,7 +54,7 @@ def localisation_cotes_franges(progress_callback,exp):
             Nom = f'capture{str(k + 1)}.bmp'
         # Resize the image to 1080x1500
         img = io.imread(Nom)
-        img = img[:1080, 240:1740]
+        img = img[:1080, 0:1500]
 
         img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
@@ -177,7 +177,7 @@ def localisation_cotes_franges(progress_callback,exp):
     plt.ylabel('uRzomm pixels')
     plt.show()
     """
-    print(time.process_time() - start_time, "seconds")  # fin mesure temps d'éxecusion
+    progress_callback.emit(100)
     # %%
 class callback():
    def emit(self, value):
@@ -192,4 +192,4 @@ if __name__ == '__main__':
     os.chdir('..')
     print(os.getcwd())
     os.chdir('active_files')
-    localisation_cotes_franges(callback(), "scan")
+    localisation_cotes_franges(callback(), "scan",240)

@@ -14,7 +14,13 @@ from skimage import io
 # On importe le module numpy qui permet de faire du calcul numérique
 import numpy as np
 from numpy import loadtxt, zeros, ones
-
+import os
+basedir = os.path.dirname(__file__)
+os.chdir(basedir)
+os.chdir('..')
+os.chdir('..')
+print(os.getcwd())
+os.chdir('active_files')
 #Chargement nombre d'image
 N = loadtxt('N.txt', np.int32)
 
@@ -29,27 +35,28 @@ NbVRzoom = len(uRzoomvect)
 NbHRzoom = len(vRzoomvect)
 
 #Numéro base décimale de la frange à localiser
-C = 12
+C = 4
 #Numéro base binaire de la frange à localiser
 Cbin = np.binary_repr(C, N)
 
 # taille des matrice uRzoom : lignes colonnes
 i = len(uRzoom)
 j = len(uRzoom[0])
-
+print(i,j)
 #On créé la matrice IRzoom
 IRzoom = zeros((i,j,N))
 
 #On charge les images IRZoom et on les binarises
 for k in range (0,N):
     #------ Chargement des images d'intensité IRZoom de l'objet dans le repere recepteur ---  
-    Nom = 'IRZoom' + str(k+1) + '.bmp'
+    Nom = 'processed_IRZoom_bis_bis' + str(k+1) + '.bmp'
     img = io.imread(Nom)
     # Seuillage de l'image
-    threshold = 125
+    threshold = 254
     idx = img[:,:,0] > threshold
     img[idx,0] = 255
     IRz = (img/255)
+    # Redimensionnement de l'image IRz à 1080x1500
     #Matrice normalisée  
     # On enregistre les IRzoom_1 2 3 ... dans IR_zoom
     IRzoom[:,:,k] = IRz[:,:,0]
