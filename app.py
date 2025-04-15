@@ -8,14 +8,10 @@ from PySide6.QtCore import *
 import traceback, sys
 from scipy.interpolate import griddata
 from skimage import io
-from scipy.interpolate import griddata
-from skimage import io
 from skimage import filters
 from skimage.morphology import disk
 import builtins
 import io
-import threading
-import time
 from numpy import loadtxt
 import numpy as np
 from numpy import savetxt
@@ -36,7 +32,6 @@ print(basedir, "basedir")
 from test import Ui_Imageur3D 
 
 sys.path.insert(0,  os.path.join(basedir,'qt_app/code/Pb_sens_direct'))
-#sys.path.insert(0, '/Users/thomas/Desktop/pronto/qt_app/code/Pb_sens_direct')
 from Objet import create_and_display_object
 from franges_objet import faire_franges_objets
 from franges_recepteur import faire_franges_recepteur
@@ -101,10 +96,6 @@ class Worker(QRunnable):
 
 
 class AnotherWindow(QWidget):
-    """
-    This "window" is a QWidget. If it has no parent, it
-    will appear as a free-floating window as we want.
-    """
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout()
@@ -205,7 +196,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.capturing = False
         self.tab_dict ={self.resultTabWidget_3:self.scan_tab,self.resultTabWidget:self.sim_tab}
         self.auto = False
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        print("Multithreading avec aux maximum %d threads" % self.threadpool.maxThreadCount())
         self.w = AnotherWindow()
         screens = app.screens()
 
@@ -261,6 +252,8 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.take_picutres_button.clicked.connect(lambda: (setattr(self.w, 'photo_taken', 0),self.afficher_frange_checkbox.setChecked(True)))
         self.coord_3D_button.clicked.connect(self.genere_objet_3D)
         self.cote_franges_button.clicked.connect(self.genere_cotes_franges)
+
+        self.load_points_from_txt()
     def take_picture(self,path):
         self.startcapture()
         ret, frame = window.capture.read()
@@ -364,7 +357,40 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                         self.calibration_emeteur()
                 print("clicked", x, y)
 
-     
+    def load_points_from_txt(self):
+        try:
+            print("loading points from recep_z0_points.txt")
+            data = np.loadtxt('recep_z0_points.txt', dtype=int)
+            for point in data:
+                self.clicked_points[2].append((int(point[0]), int(point[1])))
+            self.update_calibration_nb_point_label(2)
+        except:
+            pass
+        try:
+            print("loading points from recep_zN_points.txt")
+            data = np.loadtxt('recep_zN_points.txt', dtype=int)
+            for point in data:
+                self.clicked_points[3].append((int(point[0]), int(point[1])))
+            self.update_calibration_nb_point_label(3)
+        except:
+            pass
+        try:
+            print("loading points from emet_z0_points.txt")
+            data = np.loadtxt('emet_z0_points.txt', dtype=int)
+            for point in data:
+                self.clicked_points[4].append((int(point[0]), int(point[1])))
+            self.update_calibration_nb_point_label(4)
+        except:
+            pass
+        try:
+            print("loading points from emet_zN_points.txt")
+            data = np.loadtxt('emet_zN_points.txt', dtype=int)
+            for point in data:
+                self.clicked_points[5].append((int(point[0]), int(point[1])))
+            self.update_calibration_nb_point_label(5)
+        except:
+            pass
+
     def update_calibration_nb_point_label(self,i):
         if i == 4:
             label = self.emet_z0_nb_point_label
@@ -394,14 +420,15 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         else:
             self.endcapture()
 
+
         if i <= 5 and self.tabWidget.currentIndex() == 0:
             if i==1:
                 frame_bis = frame
             else:
                 frame_bis = cv2.imread(self.resultTabWidget_3.tabText(i))
-
+        
             for point in self.clicked_points[i]:
-                    cv2.circle(frame_bis,point, 5, (0, 0, 255), -1)
+                    cv2.circle(frame_bis,point, 5, (255, 0, 0), -1)
             
             self.tab_dict[self.resultTabWidget_3].imagelabels[i].setPixmap(QPixmap.fromImage(QImage(frame_bis.data, frame_bis.shape[1], frame_bis.shape[0], frame_bis.strides[0], QImage.Format_RGB888).rgbSwapped()))
 
@@ -417,8 +444,8 @@ class MyApp(QMainWindow, Ui_Imageur3D):
                                                 borderType=cv2.BORDER_CONSTANT, 
                                                 value=[0, 0, 0])
                 cross_size = 5
-                cross_color = (250, 250, 250)  # Green color
-                center_x, center_y = 25, 25  # Center of the zoomed area
+                cross_color = (250, 250, 250) 
+                center_x, center_y = 25, 25  
                 cv2.line(zoom, (center_x - cross_size, center_y), (center_x + cross_size, center_y), cross_color, 1)
                 cv2.line(zoom, (center_x, center_y - cross_size), (center_x, center_y + cross_size), cross_color, 1)
                 zoom = cv2.resize(zoom, (250, 250), interpolation=cv2.INTER_NEAREST)
