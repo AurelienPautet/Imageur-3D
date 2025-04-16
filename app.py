@@ -39,6 +39,7 @@ from Trames_binaires import faire_franges
 sys.path.insert(0,  os.path.join(basedir,'qt_app/code/Pb_sens_inverse'))
 from Local_cotes_franges import localisation_cotes_franges
 from Coord3D_objet import genere_coord3D
+from reconstruction3D import reconstruire_3D
 sys.path.insert(0,  os.path.join(basedir,'qt_app/code/Calibration'))
 from Calib_emetteur import calib_emet
 from Calib_recepteur import calib_recep
@@ -251,8 +252,9 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.save_img_button.clicked.connect(self.save_file_dialog)
         self.take_picutres_button.clicked.connect(lambda: (setattr(self.w, 'photo_taken', 0),self.afficher_frange_checkbox.setChecked(True)))
         self.coord_3D_button.clicked.connect(self.genere_objet_3D)
+        self.mesh_3D_button.clicked.connect(self.genere_mesh_3D)
+        self.save_mesh_button.clicked.connect(self.save_mesh_dialog)
         self.cote_franges_button.clicked.connect(self.genere_cotes_franges)
-
         self.load_points_from_txt()
     def take_picture(self,path):
         self.startcapture()
@@ -260,6 +262,14 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         if ret:
             cv2.imwrite(path, frame)
         self.endcapture()
+    
+    def save_mesh_dialog(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save File", "mesh.obj", "All Files (*);;Image Files (*.png *.jpg *.bmp)")
+        if file_name:
+            with open("output_mesh.obj", "r") as original_file:
+                with open(file_name, "w") as copy_file:
+                    copy_file.write(original_file.read())
+            print("file save :", file_name)
 
     def save_file_dialog(self):
         current_tab = self.tabWidget.currentIndex()
@@ -318,6 +328,33 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         x = x - self.tabWidget.x() -3
         y = y - self.tabWidget.y()  -31*2 -33
         return x, y
+
+    def showExample(self):
+        tab_index = self.resultTabWidget_3.currentIndex()
+        chessboard_circle_pos =[(300,100),(900,100),(300,700),(900,700),(500,300),(700,300),(500,500),(700,500),(600,400)]
+        damier_circle_pos = [(320,100),(320,400),(320,700),(640,100),(640,400),(640,700),(960,100),(960,400),(960,700),(1280,100),(1280,400),(1280,700)]
+        if tab_index == 2 or tab_index == 3 :
+            using_circle_pos = chessboard_circle_pos
+            max_points = self.recep_calib_nb_points
+            img = cv2.imread("chessboard.png")
+        elif tab_index == 4 or tab_index == 5:
+            using_circle_pos = damier_circle_pos
+            max_points = self.emet_calib_nb_points
+            img = cv2.imread("Mire_damier.bmp")
+        if(len(self.clicked_points[tab_index]) < max_points):
+            cv2.circle(img, using_circle_pos[len(self.clicked_points[tab_index])], 25, (0, 255, 0), -1)
+        else:
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 20
+            font_color = (0, 255, 0)  # Green color
+            thickness = 20
+            text = "OK!"
+            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+            text_x = (img.shape[1] - text_size[0]) // 2
+            text_y = (img.shape[0] + text_size[1]) // 2
+            cv2.putText(img, text, (text_x, text_y), font, font_scale, font_color, thickness)
+        self.label_example.setPixmap(QPixmap.fromImage(QImage(img.data, img.shape[1], img.shape[0], img.strides[0], QImage.Format_RGB888).rgbSwapped()))
+        self.label_example.setScaledContents(True)  # Ajuste l'image à la taille du QLabe
 
     def mousePressEvent(self, event):
         x, y = self.get_photo_x_y()
@@ -405,6 +442,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         else:
             label.setText(str(len(self.clicked_points[i])) + "/" + str(self.emet_calib_nb_points)+" points")
     def update_camera(self):
+        self.showExample()
         x,y = self.get_photo_x_y()
         i = self.resultTabWidget_3.currentIndex()
         if i == 1 and self.tabWidget.currentIndex() == 0:
@@ -644,6 +682,17 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.axes.set_zlabel('Z')
         self.axes.set_aspect('equal')
         self.fig.tight_layout()
+
+    def genere_mesh_3D(self):
+        print("debut d'éxecution de genere_mesh_3D")
+        worker = Worker(reconstruire_3D) 
+        worker.signals.result.connect(self.print_output)
+        worker.signals.finished.connect(self.genere_mesh_3D_complete)
+        worker.signals.progress.connect(self.progress_fn)
+        self.threadpool.start(worker)
+
+    def genere_mesh_3D_complete(self):
+        print("fin d'éxecution de genere_mesh_3D")
 
 
     def genere_cotes_franges(self):

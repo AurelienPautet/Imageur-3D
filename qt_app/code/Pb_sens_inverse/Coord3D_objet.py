@@ -45,7 +45,7 @@ def genere_coord3D(progress_callback):
             (x,y,z) = np.matmul(inv_G,H)
             X.append(x)
             Y.append(y)
-            Z.append(z)
+            Z.append(z+3)
 
 
    for i in range(len(PosiGauche)):
@@ -53,7 +53,7 @@ def genere_coord3D(progress_callback):
          if PosiGauche[i,e] !=0:
                ur = i
                vr = e 
-               ve = (NBHE/(2**N))*PosiGauche[i,e]+1
+               ve = (NBHE/(2**N))*PosiGauche[i,e]
                G=[[MR[2,0]*ur -MR[0,0] , MR[2,1]*ur - MR[0,1],MR[2,2]*ur - MR[0,2]],
                   [MR[2,0]*vr -MR[1,0] , MR[2,1]*vr - MR[1,1],MR[2,2]*vr - MR[1,2]],
                   [ME[2,0]*ve -ME[1,0] , ME[2,1]*ve - ME[1,1],ME[2,2]*ve - ME[1,2]]]
@@ -65,7 +65,7 @@ def genere_coord3D(progress_callback):
                X.append(x)
                Y.append(y)
                Z.append(z)
-
+  
                # Convert X, Y, Z lists to numpy arrays
    X = np.array(X)
    Y = np.array(Y)
