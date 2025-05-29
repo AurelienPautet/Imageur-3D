@@ -34,18 +34,18 @@ def genere_coord3D(progress_callback):
          if PosiDroite[i,e] !=0:
             ur = i
             vr = e 
-            ve = (NBHE/(2**N))*PosiDroite[i,e]
+            ve = (NBHE/(2**N))*(PosiDroite[i,e])
             G=[[MR[2,0]*ur -MR[0,0] , MR[2,1]*ur - MR[0,1],MR[2,2]*ur - MR[0,2]],
-                  [MR[2,0]*vr -MR[1,0] , MR[2,1]*vr - MR[1,1],MR[2,2]*vr - MR[1,2]],
+               [MR[2,0]*vr -MR[1,0] , MR[2,1]*vr - MR[1,1],MR[2,2]*vr - MR[1,2]],
                [ME[2,0]*ve -ME[1,0] , ME[2,1]*ve - ME[1,1],ME[2,2]*ve - ME[1,2]]]
             H=[[MR[0,3]-MR[2,3]*ur],
                [MR[1,3]-MR[2,3]*vr],
                [ME[1,3]-ME[2,3]*ve]]
             inv_G = np.linalg.inv(G)
             (x,y,z) = np.matmul(inv_G,H)
-            X.append(x)
-            Y.append(y)
-            Z.append(z+3)
+            X.append(x+4)
+            Y.append(y+4)
+            Z.append(z+4)
 
 
    for i in range(len(PosiGauche)):
@@ -71,12 +71,9 @@ def genere_coord3D(progress_callback):
    Y = np.array(Y)
    Z = np.array(Z)
 
-               # Determine the dimensions of the 2D matrix
-   max_x = int(np.ceil(np.max(X))) + 1
-   max_y = int(np.ceil(np.max(Y))) + 1
+
 
    progress_callback.emit(50)
-               # Save the 2D matrix to a file
 
    fig = plt.figure()
    ax = fig.add_subplot(111, projection='3d')

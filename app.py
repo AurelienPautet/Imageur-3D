@@ -18,9 +18,6 @@ from numpy import savetxt
 
 
 from matplotlib.backends.backend_qtagg import FigureCanvas
-from matplotlib.backends.backend_qtagg import \
-    NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backends.qt_compat import QtWidgets
 from matplotlib.figure import Figure
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -46,6 +43,8 @@ from Calib_recepteur import calib_recep
 sys.path.insert(0, basedir)
 os.chdir(os.path.join(basedir, 'qt_app/active_files'))
 
+
+#Allows to use the print function to appear in the console
 class PrintWrapper(io.StringIO):
   def __call__(self, *args, **kwargs):
     return builtins.print(*args, file=self, **kwargs)
@@ -62,7 +61,7 @@ HEIGHT = 1080
 
 try:
     from ctypes import windll 
-    myappid = 'GR9-2.PRONTO.IMAGEUR-3D.v0'
+    myappid = 'GR9-2.PRONTO.IMAGEUR-3D.v1'
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except ImportError:
     pass
@@ -107,7 +106,7 @@ class AnotherWindow(QWidget):
         self.label.setObjectName(u"label")
         self.label.setGeometry(QRect(0, 0, 1920, 1080))
         self.label.setPixmap(QPixmap("Trame5.bmp"))
-        self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+        self.label.setScaledContents(True)  
         layout.addWidget(self.label)
         self.setLayout(layout)
         self.currentTram = -1;
@@ -136,7 +135,7 @@ class AnotherWindow(QWidget):
             cv2.line(white_image, (0, NbVE // 2), (NbHE, NbVE // 2), (0, 0, 255), 2) 
             cv2.imwrite("white_image.bmp", white_image)
             self.label.setPixmap(QPixmap("white_image.bmp"))
-            self.label.setScaledContents(True)  # Ajuste l'image à la taille du QLabel
+            self.label.setScaledContents(True)  
 
         if window.afficher_frange_checkbox.isChecked():
             self.currentTram += 1
@@ -173,23 +172,26 @@ class tab_maneger():
 class MyApp(QMainWindow, Ui_Imageur3D):
     def __init__(self):
         super().__init__()
+
+        
+        #########################
+        #Load ui from QTdesigner#
+        #########################
         self.setupUi(self)
+
+
+        ########
+        #Timers#
+        ########
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_console)  
         self.timer.start(10) 
         self.cam_timer = QTimer(self)
         self.cam_timer.timeout.connect(self.update_camera)  
         self.cam_timer.start(17) 
-        self.simulateObjectButton.clicked.connect(self.generer_objet)
-        self.frangesButton.clicked.connect(lambda: self.genrere_franges(show=True))
-        self.TroisDButton.clicked.connect(self.genere_cotes_franges)
-        self.autoButton.clicked.connect(self.autoButtonClicked)
-        self.slider_exp.valueChanged.connect(self.slider_exp_changed)
-        self.slider_sat.valueChanged.connect(self.slider_sat_changed)
-        self.slider_cont.valueChanged.connect(self.slider_cont_changed)
+
 
         self.tabWidget.mousePressEvent = self.mousePressEvent
-        self.generate_frange_button.clicked.connect(lambda: self.genrere_franges(show=False, N=self.number_of_franges.value()))
         self.threadpool = QThreadPool()
 
         self.sim_tab = tab_maneger()
@@ -198,17 +200,11 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.tab_dict ={self.resultTabWidget_3:self.scan_tab,self.resultTabWidget:self.sim_tab}
         self.auto = False
         print("Multithreading avec aux maximum %d threads" % self.threadpool.maxThreadCount())
-        self.w = AnotherWindow()
-        screens = app.screens()
 
-        if len(screens) > 1:
-            screen = screens[1]
-        else:
-            screen = screens[0]
 
-        qr = screen.geometry()
-        self.w.move(qr.left(), qr.top())
-        self.w.showFullScreen()
+        ######################
+        #Adding the scan tabs#
+        ######################
         self.add_image_to_tab(self.resultTabWidget_3,"CAMERA.jpg")
         self.add_image_to_tab(self.resultTabWidget_3,"recep_z0.jpg")
         self.add_image_to_tab(self.resultTabWidget_3,"recep_zN.jpg")
@@ -216,11 +212,17 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.add_image_to_tab(self.resultTabWidget_3,"emet_zN.jpg")
 
 
-    
+        ###################
+        #Camera parameters#
+        ###################
         self.EXPOSURE = -10
         self.SATURATION = 100
         self.CONTRAST = 100
 
+
+        #############
+        #CALIBRATION#
+        #############
         self.clicked_points = {1:[],2:[],3:[],4:[],5:[]} 
         self.emet_z0_reset_button.clicked.connect(lambda: (self.clicked_points[4].clear(), 
                               self.update_calibration_nb_point_label(4)))
@@ -242,12 +244,16 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.emet_calib_nb_points = 12
         self.recep_calib_nb_points = 9
 
-
         self.emet_z0_photo_button.clicked.connect(lambda: (self.take_picture("emet_z0.jpg")) )
         self.emet_zN_photo_button.clicked.connect(lambda: (self.take_picture("emet_zN.jpg")) )
         self.recep_z0_photo_button.clicked.connect(lambda: (self.take_picture("recep_z0.jpg")) )
         self.recep_zN_photo_button.clicked.connect(lambda: (self.take_picture("recep_zN.jpg")) )
 
+        self.load_points_from_txt()
+
+        #########
+        #BUTTONS#
+        #########
 
         self.save_img_button.clicked.connect(self.save_file_dialog)
         self.take_picutres_button.clicked.connect(lambda: (setattr(self.w, 'photo_taken', 0),self.afficher_frange_checkbox.setChecked(True)))
@@ -255,7 +261,32 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.mesh_3D_button.clicked.connect(self.genere_mesh_3D)
         self.save_mesh_button.clicked.connect(self.save_mesh_dialog)
         self.cote_franges_button.clicked.connect(self.genere_cotes_franges)
-        self.load_points_from_txt()
+        self.simulateObjectButton.clicked.connect(self.generer_objet)
+        self.frangesButton.clicked.connect(lambda: self.genrere_franges(show=True))
+        self.TroisDButton.clicked.connect(self.genere_cotes_franges)
+        self.autoButton.clicked.connect(self.autoButtonClicked)
+        self.slider_exp.valueChanged.connect(self.slider_exp_changed)
+        self.slider_sat.valueChanged.connect(self.slider_sat_changed)
+        self.slider_cont.valueChanged.connect(self.slider_cont_changed)
+        self.generate_frange_button.clicked.connect(lambda: self.genrere_franges(show=False, N=self.number_of_franges.value()))
+
+        
+        ##########################
+        #Video Projecteur Fenetre#
+        ##########################
+
+        self.w = AnotherWindow()
+        screens = app.screens()
+
+        if len(screens) > 1:
+            screen = screens[1]
+        else:
+            screen = screens[0]
+
+        qr = screen.geometry()
+        self.w.move(qr.left(), qr.top())
+        self.w.showFullScreen()
+
     def take_picture(self,path):
         self.startcapture()
         ret, frame = window.capture.read()
@@ -264,7 +295,7 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         self.endcapture()
     
     def save_mesh_dialog(self):
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save File", "mesh.obj", "All Files (*);;Image Files (*.png *.jpg *.bmp)")
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save File", "mesh.obj", "All Files (*)")
         if file_name:
             with open("output_mesh.obj", "r") as original_file:
                 with open(file_name, "w") as copy_file:
@@ -331,6 +362,9 @@ class MyApp(QMainWindow, Ui_Imageur3D):
 
     def showExample(self):
         tab_index = self.resultTabWidget_3.currentIndex()
+        if(tab_index<2 or tab_index>5):
+
+            return
         chessboard_circle_pos =[(300,100),(900,100),(300,700),(900,700),(500,300),(700,300),(500,500),(700,500),(600,400)]
         damier_circle_pos = [(320,100),(320,400),(320,700),(640,100),(640,400),(640,700),(960,100),(960,400),(960,700),(1280,100),(1280,400),(1280,700)]
         if tab_index == 2 or tab_index == 3 :
@@ -710,8 +744,6 @@ class MyApp(QMainWindow, Ui_Imageur3D):
         worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
 
-    def helps(self):
-        print("help")
     def genere_cotes_franges_complete(self):
         if self.tabWidget.currentIndex() == 0:
             exp = "scan"

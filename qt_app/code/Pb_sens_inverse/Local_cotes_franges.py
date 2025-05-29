@@ -69,16 +69,31 @@ def localisation_cotes_franges(progress_callback,exp,threshold):
         img = io.imread(Nom)
         img = img[:1080, 0:1500]
 
-        img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
-        io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
-        idx = img[:,:,0] > np.maximum(red_image[:,:,0] - threshold, 100)
-        img[idx,0] = 255
-        img[idx,1] = 0
-        img[idx,2] = 0
-        idx = img[:,:,0] <= np.maximum(red_image[:,:,0] - threshold,100)
+        #img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
+        """
+        idx = img[:, :, 0] > np.maximum(red_image[:, :, 0] - threshold, 10)
+        img[:, :, 0] = 0  
+        img[:, :, 1] = 0
+        img[:, :, 2] = 0
+        img[idx, 0] = 255  
+
+        # Make black the pixels that were almost the same in red_image and black_image
+        similar_pixels = np.abs(red_image[:, :, 0] - black_image[:, :, 0]) < threshold
+        img[similar_pixels, 0] = 0
+        img[similar_pixels, 1] = 0
+        img[similar_pixels, 2] = 0
+        """
+                
+        idx = img[:,:,0] <= np.maximum(red_image[:,:,0] - threshold,10)
         img[idx,0] = 0
         img[idx,1] = 0
         img[idx,2] = 0
+        io.imsave(f'processed_IRZoom{str(k + 1)}.bmp', img)
+        idx = img[:,:,0] > np.maximum(red_image[:,:,0] - threshold, 10)
+        img[idx,0] = 255
+        img[idx,1] = 0
+        img[idx,2] = 0
+        
         io.imsave(f'processed_IRZoom_bis{str(k + 1)}.bmp', img)
         img[:, :, 0] = filters.median(img[:, :, 0], disk(5))
         io.imsave(f'processed_IRZoom_bis_bis{str(k + 1)}.bmp', img)
@@ -156,9 +171,8 @@ def localisation_cotes_franges(progress_callback,exp,threshold):
     B[:,:,2] = couleur_cotes[2]*InvPosiglobal
     B=B.astype(np.uint8)
     io.imsave(A,B)
-
-    # Affichage
     """
+    # Affichage
     plt.figure()
     plt.imshow(PosiGauche, cmap = plt.get_cmap('gray'))
     plt.title('Position Gauche')
@@ -168,12 +182,31 @@ def localisation_cotes_franges(progress_callback,exp,threshold):
     plt.imshow(PosiDroite, cmap = plt.get_cmap('gray'))
     plt.title('Position Droite')
     plt.show()
-
+    """
+    """
+    # Display points from PosiGauche in red and PosiDroite in blue
     plt.figure()
-    plt.imshow(Posiglobal, cmap = plt.get_cmap('gray'))
+    # Create a colormap with different colors for different values in Posiglobal
+    cmap = plt.get_cmap('gray')   
+    plt.imshow(Posiglobal, cmap=cmap)
     plt.title('Position Globale')
-    plt.show()
 
+    # Overlay red points for PosiGauche
+    rows, cols = np.nonzero(PosiGauche)
+    plt.scatter(cols, rows, c='red', s=1, label='PosiGauche')
+
+    # Overlay blue points for PosiDroite
+    rows, cols = np.nonzero(PosiDroite)
+    plt.scatter(cols, rows, c='blue', s=1, label='PosiDroite')
+
+    # Add legend
+    plt.legend()
+
+    # Add a colorbar to show the mapping of values to colors
+    plt.colorbar(label='Value in Posiglobal')
+    plt.show()
+    """
+    """
     #Affichage de l'image enregistrée des positions globales des franges
     plt.figure()
     plt.imshow(B[:,:,1], cmap = plt.get_cmap('gray'))
